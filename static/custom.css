@@ -44,29 +44,10 @@ body {
     font-family: 'Inter', sans-serif;
 }
 
-.quran-font {
-    font-family: Quran;   
-    line-height: 2.0;
-    white-space: pre-line;
-}
-
-.container-xs {
-    width: 100%;
-    max-width: 400px;
-    margin: 0 auto;
-    padding: 15px;
-    box-sizing: border-box;
-}
-
-.avatar {
-    vertical-align: middle;
-    border-radius: 50%;
-}
-
-.cursor-not-allowed {
-    cursor: not-allowed;
-}
-
-.bg-clyfar {
-    background-color: #CDDEFF;
+.log-centered {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    min-width: 600px;
 }
