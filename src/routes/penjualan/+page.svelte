@@ -1,9 +1,11 @@
+<script lang="ts">
+	import Header from "../../components/Header.svelte";
+</script>
 <div class="container-fluid">
     <div class="card shadow card-dashed mt-3">
         <div class="card-header">
             <div class="card-title">
-                <button type="button" class="btn btn-sm btn-primary me-1">Penjualan Kasir</button>
-                <button type="button" class="btn btn-sm btn-info me-1">Riwayat Transaksi</button>
+                <Header/>
             </div>
             <div class="card-toolbar">
                 <span class="h2 fw-bolder text-success mt-3">Total Transaksi : Rp. 900.000</span>
