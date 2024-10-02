@@ -20,8 +20,8 @@
         isModal = false
     };
 </script>
-<div class="container-sm">
-    <div class="card card-dashed shadow mt-7">
+<div class="container-fluid">
+    <div class="card card-dashed shadow mt-3">
         <div class="card-header">
             <div class="card-title">
                 <Header/>
