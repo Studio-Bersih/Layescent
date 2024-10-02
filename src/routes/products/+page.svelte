@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { db } from "$lib/utils/db";
 	import { empty } from "$lib/utils/empty";
+	import Modal from "../../components/Modal.svelte";
     import Header from "../../components/Header.svelte";
     import toast, { Toaster } from 'svelte-french-toast';
 	import { defaultStrings } from "$lib/strings/strings";
@@ -19,14 +20,31 @@
     let keterangan: string = '';
     let stokItem: number | null = null; 
 
+    let isModal: boolean = false;
     let isLoading: boolean = false;
 
+    let setDelete: number | null = null; 
+
+    function viewModal(id: number) {
+        setDelete = id;
+        openModal();
+    }
+
+    const openModal = () => {
+        isModal = true
+    };
+
+    const closeModal = () => {
+        isModal = false
+    };
+
     async function createItem(): Promise <void> {
-        console.log(currencySanitizer(hargaStok));
         if (empty(currencySanitizer(hargaStok)) || empty(currencySanitizer(hargaJual))) {
             toast.error('Harap mengisi harga stok dan harga jual!');
             return;
         }
+
+        isLoading = true;
 
         const { status, message } = await db({
             name: name,
@@ -38,7 +56,9 @@
             stok : stokItem ?? 1
         },'Create-Item');
 
-        if ( status === 'success') {
+        isLoading = false;
+
+        if (status === 'success') {
             toast.success(message);
             newData.push({
                 id: -1,
@@ -55,6 +75,37 @@
             return;
         }
 
+        toast.error(message);
+    }
+
+    async function deleteItem(): Promise <void> {
+        if (setDelete === null) {
+            toast.error('Pilih item untuk dihapus terlebih dahulu!');
+            return;
+        }
+
+        if (setDelete === -1) {
+            toast.error('Item ini dapat dihapus ketika anda berpindah halaman atau memuat ulang!');
+            return;
+        }
+
+        isLoading = true;
+
+        const { status, message } = await db({ id : setDelete }, 'Delete-Item');
+        closeModal();
+
+        isLoading = false;
+
+        if (status === 'success') {
+            const index = newData.findIndex((elements: any) => elements.id == setDelete);
+
+            newData.splice(index, 1);
+            newData = newData;            
+
+            setDelete = null;
+            toast.success(message);
+            return;
+        }
 
         toast.error(message);
     }
@@ -138,7 +189,7 @@
 
                 <button type="submit" class="btn btn-sm btn-primary mt-3 w-100" disabled={isLoading}>
                     {#if isLoading}
-                        Memuat
+                        Menyimpan...
                         <span class="spinner-border spinner-border-sm align-middle ms-2"></span>
                     {:else}
                         Simpan Item
@@ -158,10 +209,11 @@
                             <th>Nama</th>
                             <th>Jenis</th>
                             <th>Barcode</th>
-                            <th>Harga Stok</th>
-                            <th>Harga Jual</th>
+                            <th class="text-center">Harga Stok</th>
+                            <th class="text-center">Harga Jual</th>
                             <th>Keterangan</th>
-                            <th>Stok Item</th>
+                            <th class="text-center">Stok Item</th>
+                            <th></th>
                         </tr>
                     </thead>
                     <tbody>
@@ -176,10 +228,15 @@
                                     <td>{newData.name}</td>
                                     <td>{newData.jenis}</td>
                                     <td>{newData.barcode}</td>
-                                    <td>{rupiahFormatter.format(newData.hargaStok)}</td>
-                                    <td>{rupiahFormatter.format(newData.hargaJual)}</td>
+                                    <td class="text-center">{rupiahFormatter.format(newData.hargaStok)}</td>
+                                    <td class="text-center">{rupiahFormatter.format(newData.hargaJual)}</td>
                                     <td>{newData.keterangan}</td>
-                                    <td>{newData.stokItem}</td>
+                                    <td class="text-center">{newData.stokItem}</td>
+                                    <td>
+                                        <button type="button" on:click={() => viewModal(newData.id)} class="btn btn-sm btn-icon btn-danger">
+                                            <img src="/icons/trash.svg" class="h-25px" alt="SVG Trash" />
+                                        </button>
+                                    </td>
                                 </tr>
                             {/each}
                         {/if}
@@ -190,3 +247,29 @@
         </div>
     </div>
 </div>
+
+<!-- Modal -->
+{#if isModal}
+    <Modal open={isModal} onClose={closeModal}>
+        <div class="text-center">
+            <img src="/icons/alert.svg" class="h-150px mt-10" alt="SVG Alert" />
+            <h1 class="fw-bolder">Apakah anda yakin?</h1>
+        </div>
+
+        <div class="d-flex justify-content-evenly">
+            <button type="button" on:click={deleteItem} class="btn btn-sm btn-danger my-7" disabled={isLoading}>
+                {#if isLoading}
+                    Menghapus...
+                    <span class="spinner-border spinner-border-sm align-middle ms-2"></span>
+                {:else}
+                    <img src="/icons/trash.svg" class="h-25px" alt="SVG Trash" />
+                    Ya, hapus Item ini
+                {/if}
+            </button>
+            <button type="button" on:click={() => isModal = false} class="btn btn-sm btn-secondary my-7">
+                <img src="/icons/cancel.svg" class="h-25px" alt="SVG Cancel" />
+                Batalkan hapus
+            </button>
+        </div>
+    </Modal>
+{/if}
