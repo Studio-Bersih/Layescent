@@ -1,6 +1,170 @@
 <script lang="ts">
-	import Header from "../../components/Header.svelte";
+	import type { Cart } from "$lib/interface/Cart";
+    import Header from "../../components/Header.svelte";
+    import toast, { Toaster } from 'svelte-french-toast';
+	import Cash from "../../components/partials/Cash.svelte";
+	import type { Master } from "$lib/interface/MasterProduk";
+	import Changes from "../../components/partials/Changes.svelte";
+	import { currencySanitizer, rupiahFormatter } from "$lib/utils/formatter";
+	import { db } from "$lib/utils/db";
+	import { fetchItems } from "$lib/modules/loadItems";
+
+    export let data;
+
+    let cashController: HTMLElement;
+    let searchByNameController: HTMLElement;
+    let searchBar: string = '';
+
+    let masterProduk: Master[] = data.items;
+    let masterProdukDefault: Master[] = masterProduk;
+
+    let cartData: Cart[] = [];
+
+    let paidAmount: string = '';
+    let paidTotal: number = 0;
+    let paidChanges: string = '';
+    let keterangan: string = '';
+
+    let key: string;
+    let isLoading: boolean = false;
+
+    $: paidChanges = rupiahFormatter.format(currencySanitizer(paidAmount) - paidTotal);
+
+    function stringFilter(ID: string): void {
+        if (ID === '') {
+            masterProduk = masterProdukDefault;
+        } else {
+            const searchID = ID.toLowerCase();
+            masterProduk = masterProdukDefault.filter((item: { barcode: string; name: string | string[]; }) => {
+                const nameMatches = typeof item.name === 'string'
+                    ? item.name.toLowerCase().includes(searchID)
+                    : Array.isArray(item.name) && item.name.some(name => name.toLowerCase().includes(searchID));
+
+                const barcodeMatches = item.barcode?.toLowerCase().includes(searchID) ?? false;
+
+                return nameMatches || barcodeMatches;
+            });
+        }
+    }
+
+    function addToCart() {
+        if(masterProduk.length === 1){
+            const item: Master = masterProduk[0];
+
+            const duplicateFinder = cartData.find((element) => element.id === item.id);
+
+            if(duplicateFinder) {
+                console.log("pass")
+                duplicateFinder.amount += 1;
+                duplicateFinder.totalHarga = duplicateFinder.amount * item.hargaJual;
+                cartData = cartData;
+                startFocus();
+                return recalculatePrice(cartData);
+            }
+
+            cartData.push({
+                id : item.id,
+                name : item.name,
+                amount : 1,
+                hargaJual: item.hargaJual,
+                totalHarga: 1 * item.hargaJual
+            });
+            cartData = cartData;
+            startFocus();
+            return recalculatePrice(cartData);
+        }
+    }
+
+    function editCartQuantity(ID: number,value:number) {
+        const findOnCart = cartData[ID];
+        const mainItem = masterProdukDefault.find((objectKey) => objectKey.id === findOnCart.id)
+
+        if(!mainItem){
+            return toast.error("Item tidak ditemukan!", { position : 'top-right' });
+        }
+
+        if (value > mainItem.stokItem) {
+            toast.error('Stok tidak cukup!', { position: 'top-right' });
+        }
+
+        cartData[ID].totalHarga = value * findOnCart.hargaJual
+        cartData = cartData;
+        return recalculatePrice(cartData);
+    }
+
+    function removeItem(id: number) {
+        cartData.splice(id, 1);
+        cartData = cartData;
+        return recalculatePrice(cartData);
+    }
+
+    function recalculatePrice(cartData:any){
+        paidTotal = 0;
+        const sumTotal = cartData.reduce( (accumulator: any, object: { totalHarga: number }) => {
+            return accumulator + Number(object.totalHarga);
+        }, 0 );
+        paidTotal = sumTotal;
+        return paidTotal;
+    }
+
+    async function doPost(): Promise <void> {
+        if ( cartData.length === 0 ) {
+            toast.error("Harap mengisi keranjang terlebih dahulu!", { position : 'top-right' });
+            return;
+        }
+
+        isLoading = true;
+
+        const { status, message } = await db({
+            cart : cartData,
+            cash: currencySanitizer(paidAmount),
+            totalTransaksi : paidTotal,
+            kembalian: currencySanitizer(paidChanges),
+            keterangan: keterangan
+        }, 'Post-Transaction');
+
+        isLoading = false;
+
+        if (status === 'success') {
+            toast.success(message, { position: 'top-right' });
+            removeAll();
+            masterProduk = await fetchItems();
+            masterProdukDefault = masterProduk;
+            return;
+        }
+
+        toast.error(message, { position: 'top-right' });
+    }
+
+    function startFocus(){
+        searchBar = '';
+        searchByNameController.focus();
+    }
+
+    function removeAll(){
+        cartData = [];
+        paidAmount = '';
+        paidTotal = 0;
+        paidChanges = '';
+        keterangan = '';
+        isLoading = false;
+        searchBar = '';
+    }
+    
+    function startPaid(eventPressed:any){
+        key = eventPressed.key;
+        if (key == 'Escape'){
+            startFocus();
+        } else if (key == '`') {
+            cashController.focus();
+        } else if (eventPressed.ctrlKey && eventPressed.key == 'Enter') {
+            if(!isLoading) {
+                doPost();
+            }
+        }
+    }
 </script>
+<Toaster/>
 <div class="container-fluid">
     <div class="card shadow card-dashed mt-3">
         <div class="card-header">
@@ -8,7 +172,7 @@
                 <Header/>
             </div>
             <div class="card-toolbar">
-                <span class="h2 fw-bolder text-success mt-3">Total Transaksi : Rp. 900.000</span>
+                <span class="h2 fw-bolder text-success mt-3">{rupiahFormatter.format(paidTotal)}</span>
             </div>
         </div>
         <div class="card-body">
@@ -16,15 +180,20 @@
             <div class="row">
                 <div class="col">
                     
-                    <div class="row">
+                    <form on:submit|preventDefault={addToCart} class="row">
                         <div class="col-1 text-center">
                             <img src="/icons/search.svg" class="h-40px mt-5" alt="SVG Search" />
                         </div>
-                        <div class="col-11">
+                        <div class="col">
                             <label for="setToken" class="form-label fw-bold ms-1">[ESC] Scan Barcode atau Nama Item</label>
-                            <input type="number" id="setToken" min="0" class="form-control form-control-sm w-50" placeholder="Cari Item" />
+                            <input type="text" id="setToken" bind:this={searchByNameController} bind:value={searchBar} on:keyup={ () => {stringFilter(searchBar)} } min="0" class="form-control form-control-sm" placeholder="Cari Item" required />
                         </div>
-                    </div>
+                        <div class="col-2">
+                            <button type="submit" class="btn btn-sm btn-icon btn-primary mt-8">
+                                <img src="/icons/add.svg" class="h-25px" alt="SVG Add" />
+                            </button>
+                        </div>
+                    </form>
 
                     <div class="separator my-5"></div>
 
@@ -37,15 +206,17 @@
                                         <th>Nama</th>
                                         <th>Stok</th>
                                         <th>Harga</th>
+                                        <th class="text-end">Barcode</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {#each Array(15) as _,index }
+                                    {#each masterProduk as newData,index }
                                         <tr>
                                             <td class="text-center">{index + 1}</td>
-                                            <td>A</td>
-                                            <td class="text-center">B</td>
-                                            <td class="text-center">C</td>
+                                            <td>{newData.name}</td>
+                                            <td class="text-center">{newData.stokItem}</td>
+                                            <td class="text-center">{rupiahFormatter.format(newData.hargaJual)}</td>
+                                            <td class="text-end text-muted">{newData.barcode}</td>
                                         </tr>
                                     {/each}
                                 </tbody>
@@ -58,21 +229,27 @@
                     <div class="row">
                         <div class="col">
                             <label for="setPembayaran" class="form-label fw-bold">Pembayaran</label>
-                            <input type="text" class="form-control form-control-lg" placeholder="Rp. 5.000.000"/>
+                            <Cash bind:value={paidAmount} bind:cashController/>
                         </div>
                         <div class="col">
                             <label for="viewKembalian" class="form-label fw-bold">Kembalian</label>
-                            <input type="text" class="form-control form-control-lg form-control-solid" placeholder="Rp. -150.000" readonly/>
-
+                            <Changes bind:value={paidChanges}/>
                         </div>
                     </div>
 
                     <div class="form-group my-3">
                         <label for="setKeterangan" class="form-label fw-bold">Keterangan</label>
-                        <textarea class="form-control" rows="3" placeholder="Masukkan Keterangan" />
+                        <textarea class="form-control" bind:value={keterangan} rows="3" placeholder="Masukkan Keterangan" />
                     </div>
 
-                    <button type="button" class="btn btn-lg btn-primary my-1 w-100">Simpan Transaksi</button>
+                    <button type="button" class="btn btn-lg btn-primary my-1 w-100" disabled={isLoading}>
+                        {#if isLoading}
+                            Menyimpan...
+                            <span class="spinner-border spinner-border-sm align-middle ms-2"></span>
+                        {:else}
+                            Simpan Transaksi
+                        {/if}
+                    </button>
                     
                 </div>
                 <div class="col">
@@ -89,20 +266,28 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                {#each Array(15) as _,index }
+                                {#if cartData.length === 0}
                                     <tr>
-                                        <td class="text-center">{index + 1}</td>
-                                        <td>X</td>
-                                        <td class="text-center">XX</td>
-                                        <td class="text-center">XXX</td>
-                                        <td class="text-center">XXXX</td>
-                                        <td class="text-center">
-                                            <button type="button" class="btn btn-sm btn-icon btn-danger">
-                                                <img src="/icons/trash.svg" class="h-25px" alt="SVG Trash" />
-                                            </button>
-                                        </td>
+                                        <td class="text-center" colspan="6">Tidak ada data</td>
                                     </tr>
-                                {/each}
+                                {:else}
+                                    {#each cartData as cart,index }
+                                        <tr>
+                                            <td class="text-center">{index + 1}</td>
+                                            <td>{cart.name}</td>
+                                            <td  width="15%" class="text-center">
+                                                <input type="number" class="form-control-sm form-control text-center" min="1" bind:value={cart.amount} on:change={() => editCartQuantity(index, cart.amount)} on:keyup={() => editCartQuantity(index, cart.amount)}/>
+                                            </td>
+                                            <td class="text-center">{rupiahFormatter.format(cart.hargaJual ?? 0)}</td>
+                                            <td class="text-center">{rupiahFormatter.format(cart.totalHarga ?? 0)}</td>
+                                            <td class="text-center">
+                                                <button type="button" on:click={() => removeItem(index)} class="btn btn-sm btn-icon btn-danger">
+                                                    <img src="/icons/trash.svg" class="h-25px" alt="SVG Trash" />
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    {/each}
+                                {/if}
                             </tbody>
                         </table>
                     </div>
@@ -112,3 +297,5 @@
         </div>
     </div>
 </div>
+
+<svelte:window on:keydown={startPaid} />

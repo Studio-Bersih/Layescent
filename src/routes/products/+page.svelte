@@ -22,6 +22,7 @@
 
     let isModal: boolean = false;
     let isLoading: boolean = false;
+    let isHidden: boolean = false;
 
     let setDelete: number | null = null; 
 
@@ -30,6 +31,10 @@
         openModal();
     }
 
+    function viewForm(): boolean {
+        isHidden = !isHidden;
+        return isHidden;
+    }
     const openModal = () => {
         isModal = true
     };
@@ -126,76 +131,78 @@
         <div class="card-header">
             <div class="card-title"><Header/></div>
             <div class="card-toolbar">
-                <button type="button" class="btn btn-sm btn-success me-1 mb-1">
+                <button type="button" on:click={viewForm} class="btn btn-sm btn-success me-1 mb-1">
                     <img src="/icons/pen.svg" class="h-20px me-2" alt="SVG Input Item" /> Buat Item Baru
                 </button>
             </div>
         </div>
         <div class="card-body">
 
-            <form on:submit|preventDefault={createItem} class="border rounded p-3">
-                <div class="row my-2">
-                    <div class="col">
-                        <div class="form-group">
-                            <label for="name" class="form-label fw-bold">Nama</label>
-                            <input type="text" bind:value={name} class="form-control form-control-sm" placeholder="Masukkan Nama Produk" required/>
+            {#if isHidden}
+                <form on:submit|preventDefault={createItem} class="border rounded p-3">
+                    <div class="row my-2">
+                        <div class="col">
+                            <div class="form-group">
+                                <label for="name" class="form-label fw-bold">Nama</label>
+                                <input type="text" bind:value={name} class="form-control form-control-sm" placeholder="Masukkan Nama Produk" required/>
+                            </div>
+                        </div>
+                        <div class="col">
+                            <div class="form-group">
+                                <label for="barcode" class="form-label fw-bold">Barcode</label>
+                                <input type="text" bind:value={barcode} class="form-control form-control-sm" placeholder="Masukkan Barcode" required/>
+                            </div>
                         </div>
                     </div>
-                    <div class="col">
-                        <div class="form-group">
-                            <label for="barcode" class="form-label fw-bold">Barcode</label>
-                            <input type="text" bind:value={barcode} class="form-control form-control-sm" placeholder="Masukkan Barcode" required/>
+                    
+                    <div class="row my-2">
+                        <div class="col">
+                            <div class="form-group">
+                                <label for="jenis" class="form-label fw-bold">Jenis</label>
+                                <select bind:value={jenis} class="form-select form-select-sm" required>
+                                    <option value="" disabled selected>Pilih Jenis Item</option>
+                                    {#each defaultStrings.jenis as jenis }
+                                        <option value="{jenis}">{jenis}</option>
+                                    {/each}
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col">
+                            <div class="form-group">
+                                <label for="stokItem" class="form-label fw-bold">Stok Item</label>
+                                <input type="number" bind:value={stokItem} min="1" class="form-control form-control-sm" placeholder="Stok" required/>
+                            </div>
                         </div>
                     </div>
-                </div>
-                
-                <div class="row my-2">
-                    <div class="col">
-                        <div class="form-group">
-                            <label for="jenis" class="form-label fw-bold">Jenis</label>
-                            <select bind:value={jenis} class="form-select form-select-sm" required>
-                                <option value="" disabled selected>Pilih Jenis Item</option>
-                                {#each defaultStrings.jenis as jenis }
-                                    <option value="{jenis}">{jenis}</option>
-                                {/each}
-                            </select>
+                    <div class="row my-2">
+                        <div class="col">
+                            <div class="form-group">
+                                <label for="hargaStok" class="form-label fw-bold">Harga Stok</label>
+                                <Money bind:value={hargaStok}/>
+                            </div>
+                        </div>
+                        <div class="col">
+                            <div class="form-group">
+                                <label for="hargaJual" class="form-label fw-bold">Harga Jual</label>
+                                <Money bind:value={hargaJual}/>
+                            </div>
                         </div>
                     </div>
-                    <div class="col">
-                        <div class="form-group">
-                            <label for="stokItem" class="form-label fw-bold">Stok Item</label>
-                            <input type="number" bind:value={stokItem} min="1" class="form-control form-control-sm" placeholder="Stok" required/>
-                        </div>
+                    <div class="form-group">
+                        <label for="keterangan" class="form-label fw-bold">Keterangan</label>
+                        <textarea class="form-control" bind:value={keterangan} placeholder="Keterangan" rows="3"></textarea>
                     </div>
-                </div>
-                <div class="row my-2">
-                    <div class="col">
-                        <div class="form-group">
-                            <label for="hargaStok" class="form-label fw-bold">Harga Stok</label>
-                            <Money bind:value={hargaStok}/>
-                        </div>
-                    </div>
-                    <div class="col">
-                        <div class="form-group">
-                            <label for="hargaJual" class="form-label fw-bold">Harga Jual</label>
-                            <Money bind:value={hargaJual}/>
-                        </div>
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label for="keterangan" class="form-label fw-bold">Keterangan</label>
-                    <textarea class="form-control" bind:value={keterangan} placeholder="Keterangan" rows="3"></textarea>
-                </div>
 
-                <button type="submit" class="btn btn-sm btn-primary mt-3 w-100" disabled={isLoading}>
-                    {#if isLoading}
-                        Menyimpan...
-                        <span class="spinner-border spinner-border-sm align-middle ms-2"></span>
-                    {:else}
-                        Simpan Item
-                    {/if}
-                </button>
-            </form>
+                    <button type="submit" class="btn btn-sm btn-primary mt-3 w-100" disabled={isLoading}>
+                        {#if isLoading}
+                            Menyimpan...
+                            <span class="spinner-border spinner-border-sm align-middle ms-2"></span>
+                        {:else}
+                            Simpan Item
+                        {/if}
+                    </button>
+                </form>
+            {/if}
 
             <div class="separator my-10" />
 
