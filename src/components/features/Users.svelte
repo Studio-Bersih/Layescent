@@ -1,9 +1,9 @@
 <script lang="ts">
-	import type { Users } from "$lib/interface/Users";
-	import { db } from "$lib/utils/db";
-	import { doFetch } from "$lib/utils/fetcher";
 	import { onMount } from "svelte";
+    import { db } from "$lib/utils/db";
 	import toast from "svelte-french-toast";
+	import { doFetch } from "$lib/utils/fetcher";
+	import type { Users } from "$lib/interface/Users";
 
     let newData: Users[] = [];
 

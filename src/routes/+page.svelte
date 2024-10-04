@@ -1,28 +1,72 @@
 <script lang="ts">
+	import { goto } from '$app/navigation';
+	import { db } from '$lib/utils/db';
+    import toast, { Toaster } from 'svelte-french-toast';
+    
+    let token: string = '';
     let year: number = new Date().getFullYear();
+
+    let isLoading: boolean = false;
+
+    async function login(): Promise <void> {
+        if(token === ''){
+            toast.error("Harap masukkan token!");
+            return;
+        }
+
+        isLoading = true;
+
+        const { status, message, data } = await db({
+            token: token
+        },'Check-Token');
+
+        isLoading = false;
+
+        if (status === 'success') {
+            localStorage.setItem('once', JSON.stringify(data));
+            return goto('/penjualan');
+        }
+
+        token = '';
+        toast.error(message);
+    }
 </script>
+<Toaster/>
 <div class="log-centered">
     <div class="card shadow">
         <div class="card-header">
-            <h3 class="card-title fw-bold">User Login</h3>
-            <div class="card-toolbar">
-                <button type="button" class="btn btn-sm btn-primary">
+            <div class="card-title">
+                <a href="https://wa.me/628984170335" target="_blank" class="btn btn-sm btn-success">
                     <img src="/icons/key.svg" class="h-20px me-1" alt=""/>
                     Lupa Token?
-                </button>
+                </a>
+            </div>
+            <div class="card-toolbar fw-bold">
+                User Login
             </div>
         </div>
         <div class="card-body">
 
-            <div class="row">
+            <form on:submit|preventDefault={login} class="row">
                 <div class="col-1">
                     <img src="/icons/person.svg" class="h-40px mt-9" alt="SVG Login" />
                 </div>
                 <div class="col-11">
                     <label for="setToken" class="form-label fw-bold">Masukkan Token</label>
-                    <input type="number" id="setToken" min="0" class="form-control" placeholder="Token" />
+                    <input type="text" id="setToken" bind:value={token} class="form-control" placeholder="Token" required/>
                 </div>
-            </div>
+
+                <div class="d-flex justify-content-end">
+                    <button type="submit" class="btn btn-sm btn-primary w-50 mt-5" disabled={isLoading}>
+                        {#if isLoading}
+                            Masuk...
+                            <span class="spinner-border spinner-border-sm align-middle ms-2"></span>
+                        {:else}
+                            <img src="/icons/auth.svg" class="h-20px me-2" alt="SVG Auth" /> Login
+                        {/if}
+                    </button>
+                </div>
+            </form>
 
         </div>
         <div class="card-footer fw-semibold">

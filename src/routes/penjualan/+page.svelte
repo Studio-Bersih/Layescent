@@ -30,6 +30,9 @@
 
     $: paidChanges = rupiahFormatter.format(currencySanitizer(paidAmount) - paidTotal);
 
+    const sessionStorage = localStorage.getItem('once');
+    const currentSession: { token: string; roles: "Admin" | "User" } = sessionStorage ? JSON.parse(sessionStorage) : null;
+
     function stringFilter(ID: string): void {
         if (ID === '') {
             masterProduk = masterProdukDefault;
@@ -120,7 +123,8 @@
             cash: currencySanitizer(paidAmount),
             totalTransaksi : paidTotal,
             kembalian: currencySanitizer(paidChanges),
-            keterangan: keterangan
+            keterangan: keterangan,
+            pic : currentSession.token
         }, 'Post-Transaction');
 
         isLoading = false;
@@ -247,7 +251,7 @@
                             Menyimpan...
                             <span class="spinner-border spinner-border-sm align-middle ms-2"></span>
                         {:else}
-                            Simpan Transaksi
+                            [CTRL + ENTER] Simpan Transaksi
                         {/if}
                     </button>
                     

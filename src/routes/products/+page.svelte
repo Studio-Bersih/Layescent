@@ -59,7 +59,7 @@
             hargaJual: currencySanitizer(hargaJual),
             keterangan: keterangan,
             stok : stokItem ?? 1
-        },'Create-Item');
+        }, 'Create-Item');
 
         isLoading = false;
 

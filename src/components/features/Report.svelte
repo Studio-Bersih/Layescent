@@ -1,9 +1,19 @@
 <script lang="ts">
-	import { db } from '$lib/utils/db';
+	import { onMount } from 'svelte';
+    import { db } from '$lib/utils/db';
+	import { doFetch } from '$lib/utils/fetcher';
+	import type { Users } from '$lib/interface/Users';
     import toast, { Toaster } from 'svelte-french-toast';
 
     let date: Date | null = null;
     let users: string = '';
+
+    let listUsers: Users[] = [];
+
+    onMount(async () => {
+        const obtainUsers: { status: "success" | "error"; message: string; data: Users[] } = await doFetch('Users');
+        listUsers = obtainUsers.data;
+    });
 
     async function doPost(): Promise <void> {
         if (date === null) {
@@ -58,9 +68,9 @@
         <label for="chooseUser" class="form-label fw-bold">Pilih Pengguna</label>
         <select bind:value={users} class="form-select form-select-sm" required>
             <option value="" selected disabled>Pilih User</option>
-            <option value="AAA">A</option>
-            <option value="BBB">B</option>
-            <option value="CCC">C</option>
+            {#each listUsers as data}
+                <option value="{data.TOKEN}">{data.TOKEN}</option>
+            {/each}
         </select>
     </div>
     <button type="submit" class="btn btn-sm btn-success w-100 my-3">

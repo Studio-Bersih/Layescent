@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { onMount } from "svelte";
 	import { db } from "$lib/utils/db";
+	import { goto } from "$app/navigation";
     import Modal from "../../components/Modal.svelte";
 	import Header from "../../components/Header.svelte";
     import toast, { Toaster } from 'svelte-french-toast';
@@ -13,14 +14,21 @@
     let isLoading: boolean = false;
     let userContents: string = 'report';
 
-    export let data;
     let newData: HistoryPenjualan[] = [];
 
-    let setDelete: number | null = null; 
+    let setDelete: number | null = null;
 
-    onMount(() => {
-        newData = data.data
-        console.log(newData)
+    const sessionStorage = localStorage.getItem('once');
+    const currentSession: { token: string; roles: "Admin" | "User" } = sessionStorage ? JSON.parse(sessionStorage) : null;
+
+    onMount(async () => {
+        const { status, data } = await db({
+            staff : currentSession.token
+        }, 'Riwayat-Penjualan')
+
+        if (status === "success") {
+            newData = data
+        }
     });
 
     function viewModal(id: string) {
@@ -74,6 +82,11 @@
 
         toast.error(message);
     }
+
+    function endSession() {
+        localStorage.clear();
+        return goto('/');
+    }
 </script>
 <Toaster/>
 <div class="container-fluid">
@@ -83,12 +96,14 @@
                 <Header/>
             </div>
             <div class="card-toolbar">
-                <button type="button" on:click={() => viewModal('report')}  class="btn btn-sm btn-success me-2 mb-1">
-                    <img src="/icons/excel.svg" class="h-20px me-2" alt="SVG Excel" /> Unduh Laporan
-                </button>
-                <button type="button" on:click={() => viewModal('users')} class="btn btn-sm btn-warning me-2 mb-1">
-                    <img src="/icons/users.svg" class="h-20px me-2" alt="SVG Excel" /> Pengguna
-                </button>
+                {#if currentSession.roles === "Admin"}
+                    <button type="button" on:click={() => viewModal('report')}  class="btn btn-sm btn-success me-2 mb-1">
+                        <img src="/icons/excel.svg" class="h-20px me-2" alt="SVG Excel" /> Unduh Laporan
+                    </button>
+                    <button type="button" on:click={() => viewModal('users')} class="btn btn-sm btn-warning me-2 mb-1">
+                        <img src="/icons/users.svg" class="h-20px me-2" alt="SVG Excel" /> Pengguna
+                    </button>
+                {/if}
                 <button type="button" on:click={() => viewModal('logOff')} class="btn btn-sm btn-dark me-2 mb-1">
                     <img src="/icons/power.svg" class="h-20px me-2" alt="SVG Log Off" /> Akhiri Sesi
                 </button>
@@ -103,12 +118,16 @@
                             <th>#</th>
                             <th>Nama</th>
                             <th>Sisa Stok</th>
-                            <th>Harga Beli</th>
+                            {#if currentSession.roles === "Admin"}                            
+                                <th>Harga Beli</th>
+                            {/if}
                             <th>Terjual</th>
                             <th>Harga Jual</th>
                             <th>Total Transaksi</th>
                             <th>Waktu Transaksi</th>
-                            <th>Hapus Transaksi</th>
+                            {#if currentSession.roles === "Admin"}
+                                <th>Hapus Transaksi</th>
+                            {/if}
                         </tr>
                     </thead>
                     <tbody>
@@ -122,16 +141,20 @@
                                     <td>{index + 1}</td>
                                     <td class="text-start">{newData.NAMA}</td>
                                     <td>{newData.SISA_STOK}</td>
-                                    <td>{rupiahFormatter.format(newData.HARGA_BELI)}</td>
+                                    {#if currentSession.roles === "Admin"}                                    
+                                        <td>{rupiahFormatter.format(newData.HARGA_BELI)}</td>
+                                    {/if}
                                     <td>{newData.TERJUAL}</td>
                                     <td>{rupiahFormatter.format(newData.HARGA_JUAL)}</td>
                                     <td>{rupiahFormatter.format(newData.TOTAL_TRANSAKSI)}</td>
                                     <td>{newData.WAKTU_TRANSAKSI}</td>
-                                    <td>
-                                        <button type="button" on:click={() => confirmDelete(newData.ID)} class="btn btn-sm btn-icon btn-danger">
-                                            <img src="/icons/trash.svg" class="h-25px" alt="SVG Trash" />
-                                        </button>
-                                    </td>
+                                    {#if currentSession.roles === "Admin"}
+                                        <td>
+                                            <button type="button" on:click={() => confirmDelete(newData.ID)} class="btn btn-sm btn-icon btn-danger">
+                                                <img src="/icons/trash.svg" class="h-25px" alt="SVG Trash" />
+                                            </button>
+                                        </td>
+                                    {/if}
                                 </tr>
                             {/each}
                         {/if}
@@ -172,7 +195,7 @@
             </div>
         {:else if userContents === 'logOff'}
             <p class="text-center">Anda akan mengakhiri sesi dan keluar dari sistem!</p>
-            <button type="button" class="btn btn-sm btn-danger my-5 w-100">Akhiri sesi saya!</button>
+            <button type="button" on:click={endSession} class="btn btn-sm btn-danger my-5 w-100">Akhiri sesi saya!</button>
         {/if}
     </Modal>
 {/if}
