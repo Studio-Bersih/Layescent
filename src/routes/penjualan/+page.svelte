@@ -242,7 +242,7 @@
                         <textarea class="form-control" bind:value={keterangan} rows="3" placeholder="Masukkan Keterangan" />
                     </div>
 
-                    <button type="button" class="btn btn-lg btn-primary my-1 w-100" disabled={isLoading}>
+                    <button type="button" on:click={doPost} class="btn btn-lg btn-primary my-1 w-100" disabled={isLoading}>
                         {#if isLoading}
                             Menyimpan...
                             <span class="spinner-border spinner-border-sm align-middle ms-2"></span>

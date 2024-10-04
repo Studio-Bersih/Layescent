@@ -3,9 +3,19 @@
 	import Header from "../../components/Header.svelte";
 	import Users from "../../components/features/Users.svelte";
 	import Report from "../../components/features/Report.svelte";
+	import type { HistoryPenjualan } from "$lib/interface/Riwayat";
+	import { onMount } from "svelte";
+	import { rupiahFormatter } from "$lib/utils/formatter";
 
     let isModal: boolean = false;
     let userContents: string = 'report';
+
+    export let data;
+    let newData: HistoryPenjualan[] = [];
+
+    onMount(() => {
+        newData = data.data
+    });
 
     function viewModal(id: string) {
         userContents = id;
@@ -46,23 +56,33 @@
                         <tr class="text-center fw-bold">
                             <th>#</th>
                             <th>Nama</th>
-                            <th>Terjual</th>
                             <th>Sisa Stok</th>
                             <th>Harga Beli</th>
+                            <th>Terjual</th>
                             <th>Harga Jual</th>
+                            <th>Total Transaksi</th>
+                            <th>Waktu Transaksi</th>
                         </tr>
                     </thead>
                     <tbody>
-                        {#each Array(100) as _,index }
-                            <tr class="text-center">
-                                <td>{index + 1}</td>
-                                <td class="text-start">A</td>
-                                <td>B</td>
-                                <td>C</td>
-                                <td>D</td>
-                                <td>E</td>
+                        {#if newData.length === 0}
+                            <tr>
+                                <td colspan="7" class="text-center">Tidak ada data</td>
                             </tr>
-                        {/each}
+                        {:else}
+                            {#each newData as newData,index }
+                                <tr class="text-center">
+                                    <td>{index + 1}</td>
+                                    <td class="text-start">{newData.NAMA}</td>
+                                    <td>{newData.SISA_STOK}</td>
+                                    <td>{rupiahFormatter.format(newData.HARGA_BELI)}</td>
+                                    <td>{newData.TERJUAL}</td>
+                                    <td>{rupiahFormatter.format(newData.HARGA_JUAL)}</td>
+                                    <td>{rupiahFormatter.format(newData.TOTAL_TRANSAKSI)}</td>
+                                    <td>{newData.WAKTU_TRANSAKSI}</td>
+                                </tr>
+                            {/each}
+                        {/if}
                     </tbody>
                 </table>
             </div>
