@@ -1,5 +1,4 @@
 import { baseConfiguration } from "$lib/baseConfiguration";
-import { get } from "svelte/store";
 
 async function doFetch(id: string) {
     try {
