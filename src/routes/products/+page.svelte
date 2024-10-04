@@ -83,6 +83,26 @@
         toast.error(message);
     }
 
+    async function updateStock(id: number, stock: number): Promise <void> {
+        if (stock < 1) {
+            toast.error("Stok tidak boleh dibawah 0!", { position : 'top-right' });
+            return;
+        }
+
+        const { status , message } = await db({
+            id : id,
+            stock : stock
+        }, 'Update-Item');
+
+        if (status === 'success') {
+            toast.success(message, { position: 'top-right' });
+            return;
+        }
+
+        toast.error(message, { position: 'top-right' });
+
+    }
+
     async function deleteItem(): Promise <void> {
         if (setDelete === null) {
             toast.error('Pilih item untuk dihapus terlebih dahulu!');
@@ -238,9 +258,14 @@
                                     <td class="text-center">{rupiahFormatter.format(newData.hargaStok)}</td>
                                     <td class="text-center">{rupiahFormatter.format(newData.hargaJual)}</td>
                                     <td>{newData.keterangan}</td>
-                                    <td class="text-center">{newData.stokItem}</td>
+                                    <td width="10%" class="text-center">
+                                        <input type="number" bind:value={newData.stokItem} class="form-control form-control-sm text-center"/>
+                                    </td>
                                     <td>
-                                        <button type="button" on:click={() => viewModal(newData.id)} class="btn btn-sm btn-icon btn-danger">
+                                        <button type="button" on:click={() => updateStock(newData.id, newData.stokItem)} class="btn btn-sm btn-icon btn-primary mb-1">
+                                            <img src="/icons/sync.svg" class="h-25px" alt="SVG Synchronize" />
+                                        </button>
+                                        <button type="button" on:click={() => viewModal(newData.id)} class="btn btn-sm btn-icon btn-danger mb-1">
                                             <img src="/icons/trash.svg" class="h-25px" alt="SVG Trash" />
                                         </button>
                                     </td>

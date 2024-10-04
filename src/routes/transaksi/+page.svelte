@@ -151,28 +151,25 @@
         {:else if userContents === 'report'}
             <Report/>
         {:else if userContents === 'delete'}
-        
-        <div class="text-center">
-            <img src="/icons/alert.svg" class="h-150px mt-10" alt="SVG Alert" />
-            <h1 class="fw-bolder">Apakah anda yakin?</h1>
-        </div>
-
-        <div class="d-flex justify-content-evenly">
-            <button type="button" on:click={removeItem} class="btn btn-sm btn-danger my-7" disabled={isLoading}>
-                {#if isLoading}
-                    Menghapus...
-                    <span class="spinner-border spinner-border-sm align-middle ms-2"></span>
-                {:else}
-                    <img src="/icons/trash.svg" class="h-25px" alt="SVG Trash" />
-                    Ya, hapus Item ini
-                {/if}
-            </button>
-            <button type="button" on:click={() => isModal = false} class="btn btn-sm btn-secondary my-7">
-                <img src="/icons/cancel.svg" class="h-25px" alt="SVG Cancel" />
-                Batalkan hapus
-            </button>
-        </div>
-        
+            <div class="text-center">
+                <img src="/icons/alert.svg" class="h-150px mt-10" alt="SVG Alert" />
+                <h1 class="fw-bolder">Apakah anda yakin?</h1>
+            </div>
+            <div class="d-flex justify-content-evenly">
+                <button type="button" on:click={removeItem} class="btn btn-sm btn-danger my-7" disabled={isLoading}>
+                    {#if isLoading}
+                        Menghapus...
+                        <span class="spinner-border spinner-border-sm align-middle ms-2"></span>
+                    {:else}
+                        <img src="/icons/trash.svg" class="h-25px" alt="SVG Trash" />
+                        Ya, hapus Item ini
+                    {/if}
+                </button>
+                <button type="button" on:click={() => isModal = false} class="btn btn-sm btn-secondary my-7">
+                    <img src="/icons/cancel.svg" class="h-25px" alt="SVG Cancel" />
+                    Batalkan hapus
+                </button>
+            </div>
         {:else if userContents === 'logOff'}
             <p class="text-center">Anda akan mengakhiri sesi dan keluar dari sistem!</p>
             <button type="button" class="btn btn-sm btn-danger my-5 w-100">Akhiri sesi saya!</button>
