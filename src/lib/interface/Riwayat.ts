@@ -1,4 +1,5 @@
 interface HistoryPenjualan {
+    ID: number;
     NAMA: string;
     TERJUAL: number;
     SISA_STOK: number;

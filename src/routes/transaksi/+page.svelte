@@ -1,20 +1,26 @@
 <script lang="ts">
     import Modal from "../../components/Modal.svelte";
 	import Header from "../../components/Header.svelte";
+    import toast, { Toaster } from 'svelte-french-toast';
 	import Users from "../../components/features/Users.svelte";
 	import Report from "../../components/features/Report.svelte";
 	import type { HistoryPenjualan } from "$lib/interface/Riwayat";
 	import { onMount } from "svelte";
 	import { rupiahFormatter } from "$lib/utils/formatter";
+	import { db } from "$lib/utils/db";
 
     let isModal: boolean = false;
+    let isLoading: boolean = false;
     let userContents: string = 'report';
 
     export let data;
     let newData: HistoryPenjualan[] = [];
 
+    let setDelete: number | null = null; 
+
     onMount(() => {
         newData = data.data
+        console.log(newData)
     });
 
     function viewModal(id: string) {
@@ -29,7 +35,47 @@
     const closeModal = () => {
         isModal = false
     };
+
+    async function confirmDelete(id: number){
+        setDelete = id;
+        userContents = 'delete';
+        console.log(id)
+        openModal();
+    }
+
+    async function removeItem(): Promise <void> {
+        if (setDelete === null) {
+            toast.error('Pilih item untuk dihapus terlebih dahulu!');
+            return;
+        }
+
+        isLoading = true;
+
+        if (setDelete === -1) {
+            toast.error('Item ini dapat dihapus ketika anda berpindah halaman atau memuat ulang!');
+            return;
+        }
+
+        const { status, message } = await db({ id : setDelete }, 'Delete-Detail-Penjualan');
+        closeModal();
+
+        isLoading = false;
+
+        if (status === 'success') {
+            const index = newData.findIndex((elements) => elements.ID == setDelete);
+
+            newData.splice(index, 1);
+            newData = newData;            
+
+            setDelete = null;
+            toast.success(message);
+            return;
+        }
+
+        toast.error(message);
+    }
 </script>
+<Toaster/>
 <div class="container-fluid">
     <div class="card card-dashed shadow mt-3">
         <div class="card-header">
@@ -37,13 +83,13 @@
                 <Header/>
             </div>
             <div class="card-toolbar">
-                <button type="button" on:click={() => viewModal('report')}  class="btn btn-sm btn-success me-2">
+                <button type="button" on:click={() => viewModal('report')}  class="btn btn-sm btn-success me-2 mb-1">
                     <img src="/icons/excel.svg" class="h-20px me-2" alt="SVG Excel" /> Unduh Laporan
                 </button>
-                <button type="button" on:click={() => viewModal('users')} class="btn btn-sm btn-warning me-2">
+                <button type="button" on:click={() => viewModal('users')} class="btn btn-sm btn-warning me-2 mb-1">
                     <img src="/icons/users.svg" class="h-20px me-2" alt="SVG Excel" /> Pengguna
                 </button>
-                <button type="button" on:click={() => viewModal('logOff')} class="btn btn-sm btn-dark me-2">
+                <button type="button" on:click={() => viewModal('logOff')} class="btn btn-sm btn-dark me-2 mb-1">
                     <img src="/icons/power.svg" class="h-20px me-2" alt="SVG Log Off" /> Akhiri Sesi
                 </button>
             </div>
@@ -62,6 +108,7 @@
                             <th>Harga Jual</th>
                             <th>Total Transaksi</th>
                             <th>Waktu Transaksi</th>
+                            <th>Hapus Transaksi</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -80,6 +127,11 @@
                                     <td>{rupiahFormatter.format(newData.HARGA_JUAL)}</td>
                                     <td>{rupiahFormatter.format(newData.TOTAL_TRANSAKSI)}</td>
                                     <td>{newData.WAKTU_TRANSAKSI}</td>
+                                    <td>
+                                        <button type="button" on:click={() => confirmDelete(newData.ID)} class="btn btn-sm btn-icon btn-danger">
+                                            <img src="/icons/trash.svg" class="h-25px" alt="SVG Trash" />
+                                        </button>
+                                    </td>
                                 </tr>
                             {/each}
                         {/if}
@@ -98,6 +150,29 @@
             <Users/>
         {:else if userContents === 'report'}
             <Report/>
+        {:else if userContents === 'delete'}
+        
+        <div class="text-center">
+            <img src="/icons/alert.svg" class="h-150px mt-10" alt="SVG Alert" />
+            <h1 class="fw-bolder">Apakah anda yakin?</h1>
+        </div>
+
+        <div class="d-flex justify-content-evenly">
+            <button type="button" on:click={removeItem} class="btn btn-sm btn-danger my-7" disabled={isLoading}>
+                {#if isLoading}
+                    Menghapus...
+                    <span class="spinner-border spinner-border-sm align-middle ms-2"></span>
+                {:else}
+                    <img src="/icons/trash.svg" class="h-25px" alt="SVG Trash" />
+                    Ya, hapus Item ini
+                {/if}
+            </button>
+            <button type="button" on:click={() => isModal = false} class="btn btn-sm btn-secondary my-7">
+                <img src="/icons/cancel.svg" class="h-25px" alt="SVG Cancel" />
+                Batalkan hapus
+            </button>
+        </div>
+        
         {:else if userContents === 'logOff'}
             <p class="text-center">Anda akan mengakhiri sesi dan keluar dari sistem!</p>
             <button type="button" class="btn btn-sm btn-danger my-5 w-100">Akhiri sesi saya!</button>
