@@ -1,13 +1,13 @@
 <script lang="ts">
+	import { onMount } from "svelte";
+	import { db } from "$lib/utils/db";
     import Modal from "../../components/Modal.svelte";
 	import Header from "../../components/Header.svelte";
     import toast, { Toaster } from 'svelte-french-toast';
+	import { rupiahFormatter } from "$lib/utils/formatter";
 	import Users from "../../components/features/Users.svelte";
 	import Report from "../../components/features/Report.svelte";
 	import type { HistoryPenjualan } from "$lib/interface/Riwayat";
-	import { onMount } from "svelte";
-	import { rupiahFormatter } from "$lib/utils/formatter";
-	import { db } from "$lib/utils/db";
 
     let isModal: boolean = false;
     let isLoading: boolean = false;

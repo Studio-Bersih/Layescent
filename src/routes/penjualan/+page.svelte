@@ -84,7 +84,7 @@
         }
 
         if (value > mainItem.stokItem) {
-            toast.error('Stok tidak cukup!', { position: 'top-right' });
+            toast.error('Stok tidak cukup!');
         }
 
         cartData[ID].totalHarga = value * findOnCart.hargaJual
@@ -126,14 +126,14 @@
         isLoading = false;
 
         if (status === 'success') {
-            toast.success(message, { position: 'top-right' });
+            toast.success(message);
             removeAll();
             masterProduk = await fetchItems();
             masterProdukDefault = masterProduk;
             return;
         }
 
-        toast.error(message, { position: 'top-right' });
+        toast.error(message);
     }
 
     function startFocus(){

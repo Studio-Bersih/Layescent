@@ -95,11 +95,11 @@
         }, 'Update-Item');
 
         if (status === 'success') {
-            toast.success(message, { position: 'top-right' });
+            toast.success(message,);
             return;
         }
 
-        toast.error(message, { position: 'top-right' });
+        toast.error(message,);
 
     }
 
