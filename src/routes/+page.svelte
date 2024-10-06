@@ -36,7 +36,7 @@
     <div class="card shadow">
         <div class="card-header">
             <div class="card-title">
-                <a href="https://wa.me/628984170335" target="_blank" class="btn btn-sm btn-success">
+                <a href="https://wa.me/6285790801918" target="_blank" class="btn btn-sm btn-success">
                     <img src="/icons/key.svg" class="h-20px me-1" alt=""/>
                     Lupa Token?
                 </a>
