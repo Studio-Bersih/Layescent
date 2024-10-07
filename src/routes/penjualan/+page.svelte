@@ -116,6 +116,11 @@
             return;
         }
 
+        if(currencySanitizer(paidAmount) < 1) {
+            toast.error("Pembayaran harus diisi!", { position : 'top-right' });
+            return;
+        }
+
         isLoading = true;
 
         const { status, message } = await db({

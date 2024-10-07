@@ -18,6 +18,10 @@
 
     let setDelete: number | null = null;
 
+    let totalTransaksi: number = 0;
+
+    $: totalTransaksi = newData.reduce( (acc, item) => acc + item.TOTAL_TRANSAKSI, 0) ?? 0;
+
     const sessionStorage = localStorage.getItem('once');
     const currentSession: { token: string; roles: "Admin" | "User" } = sessionStorage ? JSON.parse(sessionStorage) : null;
 
@@ -157,6 +161,10 @@
                                     {/if}
                                 </tr>
                             {/each}
+                            <tr>
+                                <td colspan="6" class="text-center fw-bolder bg-light-success">Total Transaksi</td>
+                                <td class="text-start" colspan="2">{rupiahFormatter.format(totalTransaksi)}</td>
+                            </tr>
                         {/if}
                     </tbody>
                 </table>
