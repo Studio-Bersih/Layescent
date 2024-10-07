@@ -8,6 +8,7 @@
 	import type { Master } from "$lib/interface/MasterProduk";
 	import Money from "../../components/partials/Money.svelte";
 	import { currencySanitizer, rupiahFormatter } from "$lib/utils/formatter";
+	import { fetchItems } from "$lib/modules/loadItems";
 
     export let data;
     let newData: Master[] = data.items;
@@ -24,10 +25,32 @@
     let isLoading: boolean = false;
     let isHidden: boolean = false;
 
-    let setDelete: number | null = null; 
+    let currentPage: string | "delete" | "update" = '';
 
-    function viewModal(id: number) {
-        setDelete = id;
+    let setDelete: number | null = null; 
+    let setUpdate: number | null = null;
+
+    async function viewModal(id: number, type: "delete" | "update") {
+        if(type === "delete") {
+            setDelete = id;
+            currentPage = "delete";
+        } else if (type === "update") {
+            setUpdate = id;
+            currentPage = "update";
+
+            const { status, message, data } = await db({ id: id }, 'Detail-Item')
+            
+            if (status === 'success') {
+                toast.success(message);
+                name = data.NAMA;
+                jenis = data.JENIS;
+                barcode = data.BARCODE;
+                hargaStok = rupiahFormatter.format(data.HARGA_STOK);
+                hargaJual = rupiahFormatter.format(data.HARGA_JUAL);
+                keterangan = data.KETERANGAN;
+                stokItem = data.STOK_ITEM
+            }
+        }
         openModal();
     }
 
@@ -92,7 +115,7 @@
         const { status , message } = await db({
             id : id,
             stock : stock
-        }, 'Update-Item');
+        }, 'Update-Stock');
 
         if (status === 'success') {
             toast.success(message,);
@@ -100,7 +123,27 @@
         }
 
         toast.error(message,);
+    }
 
+    async function updateItem(): Promise <void> {
+        const { status , message } = await db({
+            id : setUpdate,
+            name: name,
+            jenis : jenis,
+            barcode: barcode,
+            hargaStok: currencySanitizer(hargaStok),
+            hargaJual: currencySanitizer(hargaJual),
+            keterangan: keterangan,
+            stok : stokItem ?? 1
+        }, 'Update-Item');
+
+        if (status === 'success') {
+            newData = await fetchItems();
+            toast.success(message,);
+            return;
+        }
+
+        toast.error(message,);
     }
 
     async function deleteItem(): Promise <void> {
@@ -265,7 +308,10 @@
                                         <button type="button" on:click={() => updateStock(newData.id, newData.stokItem)} class="btn btn-sm btn-icon btn-primary mb-1">
                                             <img src="/icons/sync.svg" class="h-25px" alt="SVG Synchronize" />
                                         </button>
-                                        <button type="button" on:click={() => viewModal(newData.id)} class="btn btn-sm btn-icon btn-danger mb-1">
+                                        <button type="button" on:click={() => viewModal(newData.id, "update")} class="btn btn-sm btn-icon btn-warning mb-1">
+                                            <img src="/icons/pen.svg" class="h-25px" alt="SVG Synchronize" />
+                                        </button>
+                                        <button type="button" on:click={() => viewModal(newData.id, 'delete')} class="btn btn-sm btn-icon btn-danger mb-1">
                                             <img src="/icons/trash.svg" class="h-25px" alt="SVG Trash" />
                                         </button>
                                     </td>
@@ -283,25 +329,74 @@
 <!-- Modal -->
 {#if isModal}
     <Modal open={isModal} onClose={closeModal}>
-        <div class="text-center">
-            <img src="/icons/alert.svg" class="h-150px mt-10" alt="SVG Alert" />
-            <h1 class="fw-bolder">Apakah anda yakin?</h1>
-        </div>
 
-        <div class="d-flex justify-content-evenly">
-            <button type="button" on:click={deleteItem} class="btn btn-sm btn-danger my-7" disabled={isLoading}>
-                {#if isLoading}
-                    Menghapus...
-                    <span class="spinner-border spinner-border-sm align-middle ms-2"></span>
-                {:else}
-                    <img src="/icons/trash.svg" class="h-25px" alt="SVG Trash" />
-                    Ya, hapus Item ini
-                {/if}
-            </button>
-            <button type="button" on:click={() => isModal = false} class="btn btn-sm btn-secondary my-7">
-                <img src="/icons/cancel.svg" class="h-25px" alt="SVG Cancel" />
-                Batalkan hapus
-            </button>
-        </div>
+        {#if currentPage === "delete"}
+            <div class="text-center">
+                <img src="/icons/alert.svg" class="h-150px mt-10" alt="SVG Alert" />
+                <h1 class="fw-bolder">Apakah anda yakin?</h1>
+            </div>
+
+            <div class="d-flex justify-content-evenly">
+                <button type="button" on:click={deleteItem} class="btn btn-sm btn-danger my-7" disabled={isLoading}>
+                    {#if isLoading}
+                        Menghapus...
+                        <span class="spinner-border spinner-border-sm align-middle ms-2"></span>
+                    {:else}
+                        <img src="/icons/trash.svg" class="h-25px" alt="SVG Trash" />
+                        Ya, hapus Item ini
+                    {/if}
+                </button>
+                <button type="button" on:click={() => isModal = false} class="btn btn-sm btn-secondary my-7">
+                    <img src="/icons/cancel.svg" class="h-25px" alt="SVG Cancel" />
+                    Batalkan hapus
+                </button>
+            </div>
+        {:else if currentPage === "update"}
+            <form on:submit|preventDefault={updateItem}>
+                <div class="form-group">
+                    <label for="name" class="form-label fw-bold">Nama</label>
+                    <input type="text" bind:value={name} class="form-control form-control-sm" placeholder="Masukkan Nama Produk" required/>
+                </div>
+                <div class="form-group my-2">
+                    <label for="barcode" class="form-label fw-bold">Barcode</label>
+                    <input type="text" bind:value={barcode} class="form-control form-control-sm" placeholder="Masukkan Barcode" required/>
+                </div>
+                <div class="form-group">
+                    <label for="jenis" class="form-label fw-bold">Jenis</label>
+                    <select bind:value={jenis} class="form-select form-select-sm" required>
+                        <option value="" disabled selected>Pilih Jenis Item</option>
+                        {#each defaultStrings.jenis as jenis }
+                            <option value="{jenis}">{jenis}</option>
+                        {/each}
+                    </select>
+                </div>
+                <div class="form-group my-2">
+                    <label for="stokItem" class="form-label fw-bold">Stok Item</label>
+                    <input type="number" bind:value={stokItem} min="1" class="form-control form-control-sm" placeholder="Stok" required/>
+                </div>
+                <div class="form-group">
+                    <label for="hargaStok" class="form-label fw-bold">Harga Stok</label>
+                    <Money bind:value={hargaStok}/>
+                </div>
+                <div class="form-group my-2">
+                    <label for="hargaJual" class="form-label fw-bold">Harga Jual</label>
+                    <Money bind:value={hargaJual}/>
+                </div>
+                <div class="form-group">
+                    <label for="keterangan" class="form-label fw-bold">Keterangan</label>
+                    <textarea class="form-control" bind:value={keterangan} placeholder="Keterangan" rows="3"></textarea>
+                </div>
+    
+                <button type="submit" class="btn btn-sm btn-primary mt-3 w-100" disabled={isLoading}>
+                    {#if isLoading}
+                        Menyimpan...
+                        <span class="spinner-border spinner-border-sm align-middle ms-2"></span>
+                    {:else}
+                        Update Item
+                    {/if}
+                </button>
+            </form>
+        {/if}
+
     </Modal>
 {/if}
