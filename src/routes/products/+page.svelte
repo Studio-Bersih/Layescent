@@ -300,7 +300,7 @@
                                     <td>{newData.barcode}</td>
                                     <td class="text-center">{rupiahFormatter.format(newData.hargaStok)}</td>
                                     <td class="text-center">{rupiahFormatter.format(newData.hargaJual)}</td>
-                                    <td>{newData.keterangan}</td>
+                                    <td>{newData.keterangan ?? '-'}</td>
                                     <td width="10%" class="text-center">
                                         <input type="number" bind:value={newData.stokItem} class="form-control form-control-sm text-center"/>
                                     </td>
