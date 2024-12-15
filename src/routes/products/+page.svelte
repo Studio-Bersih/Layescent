@@ -12,6 +12,7 @@
 
     export let data;
     let newData: Master[] = data.items;
+    const newDataDefault: Master[] = newData;
 
     let name: string = '';
     let jenis: string = '';
@@ -21,6 +22,9 @@
     let keterangan: string = '';
     let stokItem: number | null = null; 
 
+    let searchByNameController: HTMLElement;
+    let searchBar: string = '';
+
     let isModal: boolean = false;
     let isLoading: boolean = false;
     let isHidden: boolean = false;
@@ -29,6 +33,23 @@
 
     let setDelete: number | null = null; 
     let setUpdate: number | null = null;
+
+    function stringFilter(ID: string): void {
+        if (ID === '') {
+            newData = newDataDefault;
+        } else {
+            const searchID = ID.toLowerCase();
+            newData = newDataDefault.filter((item: { barcode: string; name: string | string[]; }) => {
+                const nameMatches = typeof item.name === 'string'
+                    ? item.name.toLowerCase().includes(searchID)
+                    : Array.isArray(item.name) && item.name.some(name => name.toLowerCase().includes(searchID));
+
+                const barcodeMatches = item.barcode?.toLowerCase().includes(searchID) ?? false;
+
+                return nameMatches || barcodeMatches;
+            });
+        }
+    }
 
     async function viewModal(id: number, type: "delete" | "update") {
         if(type === "delete") {
@@ -200,6 +221,16 @@
             </div>
         </div>
         <div class="card-body">
+
+            <div class="row">
+                <div class="col-1 text-center">
+                    <img src="/icons/search.svg" class="h-40px" alt="SVG Search" />
+                </div>
+                <div class="col">
+                    <label for="setToken" class="form-label fw-bold ms-1">[ESC] Scan Barcode atau Nama Item</label>
+                    <input type="text" id="setToken" bind:this={searchByNameController} bind:value={searchBar} on:keyup={ () => {stringFilter(searchBar)} } min="0" class="form-control form-control-sm w-25" placeholder="Cari Item" required />
+                </div>
+            </div>
 
             {#if isHidden}
                 <form on:submit|preventDefault={createItem} class="border rounded p-3">
