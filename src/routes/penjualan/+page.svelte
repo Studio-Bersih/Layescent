@@ -33,7 +33,23 @@
     const sessionStorage = localStorage.getItem('once');
     const currentSession: { token: string; roles: "Admin" | "User" } = sessionStorage ? JSON.parse(sessionStorage) : null;
 
-    onMount(() => initializePage());
+    let idleTimeout: ReturnType<typeof setTimeout>;
+
+    function resetIdleTimer() {
+        clearTimeout(idleTimeout);
+        idleTimeout = setTimeout(() => {
+            if (searchByNameController) {
+                searchByNameController.focus();
+            }
+        }, 10000); // 20 seconds
+    }
+
+    onMount(() => {
+        const events = ['mousemove', 'keydown', 'mousedown', 'touchstart'];
+        events.forEach(event => window.addEventListener(event, resetIdleTimer));
+        resetIdleTimer(); // initialize
+        initializePage()
+    });
 
     async function initializePage(): Promise <void>{
         masterProduk = await fetchItems();
