@@ -216,6 +216,7 @@
                                         <th>Stok</th>
                                         <th>Harga</th>
                                         <th class="text-end">Barcode</th>
+                                        <th>Act</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -226,6 +227,11 @@
                                             <td class="text-center">{newData.stokItem}</td>
                                             <td class="text-center">{rupiahFormatter.format(newData.hargaJual)}</td>
                                             <td class="text-end text-muted">{newData.barcode}</td>
+                                            <td class="text-center">
+                                                <button type="button" class="btn btn-sm btn-icon btn-primary">
+                                                    <img src="/icons/add.svg" class="h-25px" alt="SVG Add"/>
+                                                </button>
+                                            </td>
                                         </tr>
                                     {/each}
                                 </tbody>

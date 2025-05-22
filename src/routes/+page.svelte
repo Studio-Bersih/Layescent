@@ -1,9 +1,9 @@
 <script lang="ts">
-	import { goto } from '$app/navigation';
 	import { db } from '$lib/utils/db';
+	import { goto } from '$app/navigation';
     import toast, { Toaster } from 'svelte-french-toast';
     
-    let token: string = '';
+    let token: string = 'NICO1115';
     let year: number = new Date().getFullYear();
 
     let isLoading: boolean = false;
@@ -16,19 +16,23 @@
 
         isLoading = true;
 
-        const { status, message, data } = await db({
-            token: token
-        },'Check-Token');
+        try {
+            const { status, message, data } = await db({
+                token: token
+            },'Check-Token');
 
-        isLoading = false;
+            if (status === 'error') {
+                token = '';
+                toast.error(message);
+                return;
+            }
 
-        if (status === 'success') {
             localStorage.setItem('once', JSON.stringify(data));
             return goto('/penjualan');
-        }
 
-        token = '';
-        toast.error(message);
+        } catch (error) {
+            toast.error("Terjadi kesalahan saat login!");
+        }
     }
 </script>
 <Toaster/>
