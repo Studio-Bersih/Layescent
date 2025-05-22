@@ -1,5 +1,6 @@
 <script lang="ts">
-	import { db } from "$lib/utils/db";
+    import { onMount } from "svelte";
+    import { db } from "$lib/utils/db";
 	import type { Cart } from "$lib/interface/Cart";
 	import { fetchItems } from "$lib/modules/loadItems";
     import Header from "../../components/Header.svelte";
@@ -9,14 +10,12 @@
 	import Changes from "../../components/partials/Changes.svelte";
 	import { currencySanitizer, rupiahFormatter } from "$lib/utils/formatter";
 
-    export let data;
-
     let cashController: HTMLElement;
     let searchByNameController: HTMLElement;
     let searchBar: string = '';
 
-    let masterProduk: Master[] = data.items;
-    let masterProdukDefault: Master[] = masterProduk;
+    let masterProduk: Master[] = [];
+    let masterProdukDefault: Master[] = [];
 
     let cartData: Cart[] = [];
 
@@ -27,11 +26,19 @@
 
     let key: string;
     let isLoading: boolean = false;
+    let currentIndex: number = 0;
 
     $: paidChanges = rupiahFormatter.format(currencySanitizer(paidAmount) - paidTotal);
 
     const sessionStorage = localStorage.getItem('once');
     const currentSession: { token: string; roles: "Admin" | "User" } = sessionStorage ? JSON.parse(sessionStorage) : null;
+
+    onMount(() => initializePage());
+
+    async function initializePage(): Promise <void>{
+        masterProduk = await fetchItems();
+        masterProdukDefault = masterProduk;
+    } 
 
     function stringFilter(ID: string): void {
         if (ID === '') {
@@ -57,7 +64,6 @@
             const duplicateFinder = cartData.find((element) => element.id === item.id);
 
             if(duplicateFinder) {
-                console.log("pass")
                 duplicateFinder.amount += 1;
                 duplicateFinder.totalHarga = duplicateFinder.amount * item.hargaJual;
                 cartData = cartData;
@@ -159,18 +165,61 @@
         isLoading = false;
         searchBar = '';
     }
+
+    function focusButton(index: number) {
+        const btn = document.getElementById(`selectable_${index}`) as HTMLButtonElement;
+        if (btn) {
+            btn.focus();
+        }
+    }
     
-    function startPaid(eventPressed:any){
-        key = eventPressed.key;
+    function startPaid(event: KeyboardEvent){
+        key = event.key;
         if (key == 'Escape'){
             startFocus();
         } else if (key == '`') {
             cashController.focus();
-        } else if (eventPressed.ctrlKey && eventPressed.key == 'Enter') {
+        } else if (event.ctrlKey && event.key == 'Enter') {
             if(!isLoading) {
                 doPost();
             }
+        } 
+
+        else if (key === 'ArrowDown') {
+            event.preventDefault();
+            currentIndex = Math.min(currentIndex + 1, masterProduk.length - 1);
+            focusButton(currentIndex);
+        } else if (key === 'ArrowUp') {
+            event.preventDefault();
+            currentIndex = Math.max(currentIndex - 1, 0);
+            focusButton(currentIndex);
         }
+
+    }
+
+    async function addByButton(index: number) {
+        const item: Master = masterProduk[index];
+
+        const duplicateFinder = cartData.find((element) => element.id === item.id);
+
+        if(duplicateFinder) {
+            duplicateFinder.amount += 1;
+            duplicateFinder.totalHarga = duplicateFinder.amount * item.hargaJual;
+            cartData = cartData;
+            startFocus();
+            return recalculatePrice(cartData);
+        }
+
+        cartData.push({
+            id : item.id,
+            name : item.name,
+            amount : 1,
+            hargaJual: item.hargaJual,
+            totalHarga: 1 * item.hargaJual
+        });
+        cartData = cartData;
+        startFocus();
+        return recalculatePrice(cartData);
     }
 </script>
 <Toaster/>
@@ -228,7 +277,7 @@
                                             <td class="text-center">{rupiahFormatter.format(newData.hargaJual)}</td>
                                             <td class="text-end text-muted">{newData.barcode}</td>
                                             <td class="text-center">
-                                                <button type="button" class="btn btn-sm btn-icon btn-primary">
+                                                <button id={`selectable_${index}`} tabindex="0" on:click={() => addByButton(index)} type="button" class="btn btn-sm btn-icon btn-light-primary">
                                                     <img src="/icons/add.svg" class="h-25px" alt="SVG Add"/>
                                                 </button>
                                             </td>
