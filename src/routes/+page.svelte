@@ -21,6 +21,8 @@
                 token: token
             },'Check-Token');
 
+            isLoading = false;
+
             if (status === 'error') {
                 token = '';
                 toast.error(message);
@@ -31,6 +33,7 @@
             return goto('/penjualan');
 
         } catch (error) {
+            isLoading = false;
             toast.error("Terjadi kesalahan saat login!");
         }
     }

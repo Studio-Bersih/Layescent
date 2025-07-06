@@ -10,16 +10,19 @@
     onMount(async () => {
         const obtainUsers: { status: "success" | "error"; message: string; data: Users[] } = await doFetch('Users');
         newData = obtainUsers.data;
+
     });
 
-    async function changeToken(id: number, token: string): Promise <void> {
+    async function changeToken(id: number, token: string, cabang: number, usaha: string): Promise <void> {
         if(token === '') {
             toast.error("Token tidak boleh kosong")
         }
 
         const { status, message } = await db({
             id: id,
-            token : token
+            token : token,
+            cabang: cabang,
+            usaha: usaha
         }, 'Update-Users');
 
         if (status === 'success') {
@@ -38,6 +41,7 @@
                 <th>#</th>
                 <th>Token</th>
                 <th>Role</th>
+                <th>Cabang</th>
                 <th>Action</th>
             </tr>
         </thead>
@@ -50,7 +54,15 @@
                     </td>
                     <td>{newData.ROLE}</td>
                     <td>
-                        <button type="button" on:click={() => changeToken(newData.ID, newData.TOKEN)} class="btn btn-sm btn-primary">Simpan</button>
+                        <select bind:value={newData.CABANG} class="form-select form-select-sm">
+                            <option value="">Pilih Cabang</option>
+                            <option value="1">Cabang 1</option>
+                            <option value="2">Cabang 2</option>
+                            <option value="3">Cabang 3</option>
+                        </select>
+                    </td>
+                    <td>
+                        <button type="button" on:click={() => changeToken(newData.ID, newData.TOKEN, newData.CABANG, newData.USAHA)} class="btn btn-sm btn-primary">Simpan</button>
                     </td>
                 </tr>
             {/each}
