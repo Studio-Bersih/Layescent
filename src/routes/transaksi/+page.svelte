@@ -23,11 +23,11 @@
     $: totalTransaksi = newData.reduce( (acc, item) => acc + item.TOTAL_TRANSAKSI, 0) ?? 0;
 
     const sessionStorage = localStorage.getItem('once');
-    const currentSession: { token: string; roles: "Admin" | "User" } = sessionStorage ? JSON.parse(sessionStorage) : null;
+    const currentSession: { token: string; roles: "Admin" | "User"; usaha: string; } = sessionStorage ? JSON.parse(sessionStorage) : null;
 
     onMount(async () => {
         const { status, data } = await db({
-            staff : currentSession.token
+            staff : currentSession.token,
         }, 'Riwayat-Penjualan')
 
         if (status === "success") {

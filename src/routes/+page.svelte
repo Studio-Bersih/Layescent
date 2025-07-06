@@ -3,7 +3,7 @@
 	import { goto } from '$app/navigation';
     import toast, { Toaster } from 'svelte-french-toast';
     
-    let token: string = 'NICO150';
+    let token: string = '';
     let year: number = new Date().getFullYear();
 
     let isLoading: boolean = false;

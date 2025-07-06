@@ -9,9 +9,9 @@
 	import Money from "../../components/partials/Money.svelte";
 	import { currencySanitizer, rupiahFormatter } from "$lib/utils/formatter";
 	import { fetchItems } from "$lib/modules/loadItems";
+	import { onMount } from "svelte";
 
-    export let data;
-    let newData: Master[] = data.items;
+    let newData: Master[] = [];
     const newDataDefault: Master[] = newData;
 
     let name: string = '';
@@ -31,8 +31,37 @@
 
     let currentPage: string | "delete" | "update" = '';
 
+    const sessionStorage = localStorage.getItem('once');
+    const currentSession: { token: string; roles: "Admin" | "User"; usaha: string; } = sessionStorage ? JSON.parse(sessionStorage) : null;
+
     let setDelete: number | null = null; 
     let setUpdate: number | null = null;
+
+    onMount(() => initializePage());
+
+    async function initializePage(): Promise <void> {
+        const { status, message, data } = await db({
+            TOKEN: currentSession.token,
+            USAHA: currentSession.usaha
+        }, 'List-Item');
+
+        if (status === "error") {
+            toast.error(message);
+            return
+        }
+
+        newData = data.map((element: { ID: number; NAMA: string; BARCODE: string; JENIS: string; STOK_ITEM: number; HARGA_STOK: number; HARGA_JUAL: number; KETERANGAN: string }) => ({
+            id: element.ID,
+            name: element.NAMA,
+            jenis: element.JENIS,
+            barcode: element.BARCODE,
+            hargaStok: element.HARGA_STOK,
+            hargaJual: element.HARGA_JUAL,
+            keterangan: element.KETERANGAN,
+            stokItem: element.STOK_ITEM,
+        }));
+        newData = newData;
+    }
 
     function stringFilter(ID: string): void {
         if (ID === '') {
@@ -102,7 +131,8 @@
             hargaStok: currencySanitizer(hargaStok),
             hargaJual: currencySanitizer(hargaJual),
             keterangan: keterangan,
-            stok : stokItem ?? 1
+            stok : stokItem ?? 1,
+            usaha: currentSession.usaha
         }, 'Create-Item');
 
         isLoading = false;

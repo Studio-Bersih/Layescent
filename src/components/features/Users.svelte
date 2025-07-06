@@ -8,8 +8,19 @@
     let newData: Users[] = [];
 
     onMount(async () => {
-        const obtainUsers: { status: "success" | "error"; message: string; data: Users[] } = await doFetch('Users');
-        newData = obtainUsers.data;
+        const sessionStorage = localStorage.getItem('once');
+        const currentSession: { token: string; roles: "Admin" | "User"; usaha: string; } = sessionStorage ? JSON.parse(sessionStorage) : null;
+
+        const { status, message, data } = await db({
+            usaha: currentSession.usaha
+        }, 'Users');
+
+        if (status === "error") {
+            toast.error(message);
+            return;
+        }
+
+        newData = data;
 
     });
 

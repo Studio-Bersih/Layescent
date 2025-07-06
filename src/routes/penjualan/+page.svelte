@@ -2,7 +2,6 @@
     import { onMount } from "svelte";
     import { db } from "$lib/utils/db";
 	import type { Cart } from "$lib/interface/Cart";
-	import { fetchItems } from "$lib/modules/loadItems";
     import Header from "../../components/Header.svelte";
     import toast, { Toaster } from 'svelte-french-toast';
 	import Cash from "../../components/partials/Cash.svelte";
@@ -31,7 +30,7 @@
     $: paidChanges = rupiahFormatter.format(currencySanitizer(paidAmount) - paidTotal);
 
     const sessionStorage = localStorage.getItem('once');
-    const currentSession: { token: string; roles: "Admin" | "User" } = sessionStorage ? JSON.parse(sessionStorage) : null;
+    const currentSession: { token: string; roles: "Admin" | "User"; usaha: string; } = sessionStorage ? JSON.parse(sessionStorage) : null;
 
     let idleTimeout: ReturnType<typeof setTimeout>;
 
@@ -52,7 +51,27 @@
     });
 
     async function initializePage(): Promise <void>{
-        masterProduk = await fetchItems();
+        const { status, message, data } = await db({
+            TOKEN: currentSession.token,
+            USAHA: currentSession.usaha
+        }, 'List-Item');
+
+        if (status === "error") {
+            toast.error(message);
+            return
+        }
+
+        masterProduk = data.map((element: { ID: number; NAMA: string; BARCODE: string; JENIS: string; STOK_ITEM: number; HARGA_STOK: number; HARGA_JUAL: number; KETERANGAN: string }) => ({
+            id: element.ID,
+            name: element.NAMA,
+            jenis: element.JENIS,
+            barcode: element.BARCODE,
+            hargaStok: element.HARGA_STOK,
+            hargaJual: element.HARGA_JUAL,
+            keterangan: element.KETERANGAN,
+            stokItem: element.STOK_ITEM,
+        }));
+        masterProduk = masterProduk;
         masterProdukDefault = masterProduk;
     } 
 
@@ -159,8 +178,7 @@
         if (status === 'success') {
             toast.success(message);
             removeAll();
-            masterProduk = await fetchItems();
-            masterProdukDefault = masterProduk;
+            initializePage();
             return;
         }
 

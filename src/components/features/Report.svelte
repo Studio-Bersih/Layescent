@@ -11,8 +11,20 @@
     let listUsers: Users[] = [];
 
     onMount(async () => {
-        const obtainUsers: { status: "success" | "error"; message: string; data: Users[] } = await doFetch('Users');
-        listUsers = obtainUsers.data;
+        const sessionStorage = localStorage.getItem('once');
+        const currentSession: { token: string; roles: "Admin" | "User"; usaha: string; } = sessionStorage ? JSON.parse(sessionStorage) : null;
+
+        const { status, message, data } = await db({
+            usaha: currentSession.usaha
+        }, 'Users');
+
+        if (status === "error") {
+            toast.error(message);
+            return;
+        }
+
+        listUsers = data;
+
     });
 
     async function doPost(): Promise <void> {
