@@ -13,5 +13,8 @@
         <a href="/products" class="btn btn-sm btn-danger me-1 mb-1">
             <img src="/icons/box.svg" class="h-20px me-2" alt="SVG Master Produk" /> Master Produk
         </a>
+        <a href="/charts" class="btn btn-sm btn-warning me-1 mb-1">
+            <img src="/icons/box.svg" class="h-20px me-2" alt="SVG Master Produk" /> Statistik
+        </a>
     {/if}
 </div>
