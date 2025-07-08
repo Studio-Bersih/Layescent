@@ -3,6 +3,7 @@
 	import { db } from "../library/hooks/db";
 	import { useNotice } from "../library/validator/useNotice";
 	import { goto } from "$app/navigation";
+	import { useConfiguration } from "../config/useConfiguration";
 
     let token: string = $state('');
     let year: number = new Date().getFullYear();
@@ -20,7 +21,7 @@
         try {
             const { status, message, data } = await db({
                 token: token
-            },'Check-Token');
+            }, 'Check-Token');
 
             isLoading = false;
 
@@ -30,8 +31,11 @@
                 return;
             }
 
-            localStorage.setItem('once', JSON.stringify(data));
-            return goto('/penjualan');
+            $useConfiguration.token = data.token;
+            $useConfiguration.usaha = data.usaha;
+            $useConfiguration.roles = data.roles;
+            localStorage.setItem('token', JSON.stringify(data));
+            return goto('/retail');
 
         } catch (error) {
             isLoading = false;
