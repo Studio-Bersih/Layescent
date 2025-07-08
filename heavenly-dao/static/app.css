@@ -1,0 +1,53 @@
+@font-face {
+    font-family: 'Inter';
+    src: url('/fonts/Inter-Light.ttf') format('truetype');
+    font-weight: 300;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Inter';
+    src: url('/fonts/Inter-Regular.ttf') format('truetype');
+    font-weight: 400;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Inter';
+    src: url('/fonts/Inter-Medium.ttf') format('truetype');
+    font-weight: 500;
+    font-style: bold;
+}
+
+@font-face {
+    font-family: 'Inter';
+    src: url('/fonts/Inter-SemiBold.ttf') format('truetype');
+    font-weight: 600;
+    font-style: bold;
+}
+
+@font-face {
+    font-family: 'Inter';
+    src: url('/fonts/Inter-Bold.ttf') format('truetype');
+    font-weight: 700;
+    font-style: bold;
+}
+
+@font-face {
+    font-family: 'Quran';
+    src: url('/fonts/fatiha/quran.ttf') format('truetype');
+    font-weight: 700;
+    font-style: bold;
+}
+
+body {
+    font-family: 'Inter', sans-serif;
+}
+
+.log-centered {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    min-width: 600px;
+}
