@@ -33,21 +33,6 @@
     font-style: bold;
 }
 
-@font-face {
-    font-family: 'Quran';
-    src: url('/fonts/fatiha/quran.ttf') format('truetype');
-    font-weight: 700;
-    font-style: bold;
-}
-
 body {
     font-family: 'Inter', sans-serif;
-}
-
-.log-centered {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    min-width: 600px;
 }
