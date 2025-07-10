@@ -7,6 +7,7 @@
 	import { currencySanitizer, rupiahFormatter } from "../../library/utils/useFormatter";
 
     import Rupiah from "../../components/shared/Rupiah.svelte";
+	import Navigation from "../../components/Navigation.svelte";
 
     interface Master { 
         id: number;
@@ -272,11 +273,11 @@
         return recalculatePrice(cartData);
     }
 </script>
+<Navigation/>
 <div class="container-fluid">
     <div class="card shadow card-dashed mt-3">
         <div class="card-header">
             <div class="card-title">
-                <!-- <Header/> -->
             </div>
             <div class="card-toolbar">
                 <span class="h2 fw-bolder text-success mt-3">{rupiahFormatter.format(paidTotal)}</span>
