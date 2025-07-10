@@ -34,7 +34,8 @@ export const useNotice = {
         duplicate: 'Data ini duplikat',
         forbidden: 'Akses anda tidak cukup. Hubungi Admin.',
         noHistory: 'Tidak ada riwayat. Kembali ke halaman awal.',
-        failedReceipt: 'Pencetakan nota gagal. Cek kembali koneksi anda'
+        failedReceipt: 'Pencetakan nota gagal. Cek kembali koneksi anda',
+        invalidField: 'Field tidak valid.',
     },
     setting: {
         missingDateAndOutlet: 'Harap isi tanggal dan outlet.'

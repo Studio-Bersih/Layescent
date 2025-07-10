@@ -23,8 +23,8 @@
     let sideBar: Sidebar[] = $state([]);
 
     const transaksiBar: Sidebar[] = [
-        { icon: '/icons/outlet/Assets-Transaksi/Retail.svg', name: 'Penjualan Retail', url: '/outlet/transaksi/retail', isAdministrator: false },
-        { icon: '/icons/outlet/Assets-Transaksi/Pesanan.svg', name: 'E Money', url: '/outlet/transaksi/pesanan', isAdministrator: false },
+        { icon: '/icons/outlet/Assets-Transaksi/Retail.svg', name: 'Penjualan Retail', url: '/retail', isAdministrator: false },
+        { icon: '/icons/outlet/Assets-Transaksi/Pesanan.svg', name: 'E Money', url: '/e-money', isAdministrator: false },
     ];
 
     const adjustmentBar: Sidebar[] = [
@@ -134,12 +134,11 @@
                 </div> -->
                 <div class="col">
                     <div class="form-group mt-1">
-                        <a href="/outlet/docs" class="btn btn-sm fw-bolder ms-5 {activeMenu ===  'Docs' ? 'text-golden' : 'text-gray-600' }">Docs</a>
                         <button type="button" onclick={() => openSidebar('Bar')} class="btn btn-sm fw-bolder {activeMenu ===  'Bar' ? 'text-golden' : 'text-gray-600' }">Chocoa's Bar</button>
                         <button type="button" onclick={() => openSidebar('Report')} class="btn btn-sm fw-bolder {activeMenu ===  'Report' ? 'text-golden' : 'text-gray-600' }">Report</button>
                         <button type="button" class="btn btn-sm btn-flush text-muted disabled">|</button>
                         <a href="/retail" class="btn btn-sm fw-bolder {activeMenu ===  'Retail' ? 'text-golden' : 'text-gray-600' }">Retail</a>
-                        <a href="/emoney" class="btn btn-sm fw-bolder {activeMenu ===  'Pesanan' ? 'text-golden' : 'text-gray-600' }">E-Money</a>
+                        <a href="/e-money" class="btn btn-sm fw-bolder {activeMenu ===  'Pesanan' ? 'text-golden' : 'text-gray-600' }">E-Money</a>
                     </div>
                 </div>
             </div>
@@ -209,7 +208,9 @@
     <div class="mb-3"></div>
     {#each data as { name, url, icon, isAdministrator }}
         {#if !isAdministrator || (isAdministrator && Auth === "Admin")}
-            <a href={url} class="sidebar-link btn btn-active-secondary btn-xs w-100 text-start fw-bold">{name}</a>
+            <a href={url} class="sidebar-link btn btn-active-secondary btn-xs w-100 text-start fw-bold">
+                <img src={icon} class="h-20px me-5 svg-gray" alt={name}/>{name}
+            </a>
         {/if}
     {/each}
 {/snippet}
