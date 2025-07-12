@@ -1,9 +1,13 @@
 <script lang="ts">
+	import { onMount } from "svelte";
 	import { toast } from "svelte-sonner";
-	import Navigation from "../../components/Navigation.svelte";
-	import Rupiah from "../../components/shared/Rupiah.svelte";
+	import { db } from "../../library/hooks/db";
 	import { useNotice } from "../../library/validator/useNotice";
+	import { useConfiguration } from "../../config/useConfiguration";
 	import { currencySanitizer, rupiahFormatter } from "../../library/utils/useFormatter";
+
+    import Rupiah from "../../components/shared/Rupiah.svelte";
+	import Navigation from "../../components/Navigation.svelte";
 
     interface Transaction {
         type: string;
@@ -13,104 +17,100 @@
     }
 
     interface PaymentRange {
-        rangeStart: number;
-        rangeEnd: number;
-        fee: number;
+        ID: number;
+        RANGE_START: number;
+        RANGE_END: number;
+        USAHA: string;
+        FEE: number;
     }
-    const transactionTypes: string[] = [
-        "Pilih Tipe Transaksi",
-        "Transfer Antar Bank & EDC",
-        "Penarikan GoPay & QRIS",
-        "Top Up Maxim",
-        "Isi Ulang Token PLN"
-    ];
 
-    const paymentRanges: Record<string, PaymentRange[]> = {
-        "Transfer Antar Bank & EDC": [
-            { rangeStart: 10000, rangeEnd: 200000, fee: 5000 },
-            { rangeStart: 201000, rangeEnd: 500000, fee: 8000 },
-            { rangeStart: 501000, rangeEnd: 1000000, fee: 10000 },
-            { rangeStart: 1010000, rangeEnd: 2000000, fee: 15000 },
-            { rangeStart: 2010000, rangeEnd: 3000000, fee: 20000 },
-            { rangeStart: 3010000, rangeEnd: 4000000, fee: 25000 },
-            { rangeStart: 4010000, rangeEnd: 5000000, fee: 30000 },
-            { rangeStart: 5010000, rangeEnd: 6000000, fee: 35000 },
-            { rangeStart: 6010000, rangeEnd: 7000000, fee: 40000 },
-            { rangeStart: 7010000, rangeEnd: 8000000, fee: 45000 },
-            { rangeStart: 8010000, rangeEnd: 10000000, fee: 50000 },
-        ],
-        "Penarikan GoPay & QRIS": [
-            { rangeStart: 5000, rangeEnd: 25000, fee: 2000 },
-            { rangeStart: 26000, rangeEnd: 50000, fee: 3000 },
-            { rangeStart: 51000, rangeEnd: 101000, fee: 4000 },
-            { rangeStart: 102000, rangeEnd: 200000, fee: 5000 },
-            { rangeStart: 201000, rangeEnd: 500000, fee: 8000 },
-            { rangeStart: 501000, rangeEnd: 1000000, fee: 10000 },
-            { rangeStart: 1010000, rangeEnd: 1500000, fee: 15000 },
-            { rangeStart: 1501000, rangeEnd: 2000000, fee: 20000 },
-            { rangeStart: 2010000, rangeEnd: 3000000, fee: 30000 },
-        ],
-        "Top Up Maxim": [
-            { rangeStart: 10000, rangeEnd: 200000, fee: 5000 },
-            { rangeStart: 200000, rangeEnd: 500000, fee: 8000 },
-            { rangeStart: 500000, rangeEnd: 1000000, fee: 10000 },
-            { rangeStart: 1000000, rangeEnd: 2000000, fee: 15000 }
-        ],
-        "Isi Ulang Token PLN": [
-            { rangeStart: 10000, rangeEnd: 200000, fee: 5000 },
-            { rangeStart: 200000, rangeEnd: 500000, fee: 8000 },
-            { rangeStart: 500000, rangeEnd: 1000000, fee: 10000 },
-            { rangeStart: 1000000, rangeEnd: 2000000, fee: 15000 },
-            { rangeStart: 2000000, rangeEnd: 3000000, fee: 20000 },
-            { rangeStart: 3000000, rangeEnd: 4000000, fee: 25000 }
-        ]
-    };
+    interface TransactionType {
+        "ID": number,
+        "NAME": string,
+        "USAHA": string,
+        "CREATED_AT": string,
+        "UPDATED_AT": string
+    }
+    
+    let transactionTypes: TransactionType[] = $state([]);
 
-    let selectedType: string = $state(transactionTypes[0]);
+    const paymentRanges: Record<string, PaymentRange[]> = $state($useConfiguration.emoney as any);
+
+    let selectedType: string = $state('');
     let transactionAmount: string = $state('');
 
     let transactions: Transaction[] = $state([]);
 
-    function calculateFee(type: string, amount: number): number {
-        const selectedRange = paymentRanges[type];
-        
-        if (!selectedRange) {
-            toast.error(useNotice.general.invalidField);
-            return 0;
-        }
-        
-        if (amount <= 0) {
-            toast.error(useNotice.general.invalidField);
-            return 0;
-        }
-        
-        for (let range of selectedRange) {
-            if (amount >= range.rangeStart && amount <= range.rangeEnd) {
-                return range.fee;
-            }
+    onMount(() => initializePage());
+
+    async function initializePage(): Promise <void> {
+        const { status, message, data } = await db({
+            'USAHA': $useConfiguration.usaha
+        }, 'E-Money/Ranged');
+
+        if (status === "error") {
+            toast.error(message);
+            return;
         }
 
-        return 0;
+        transactionTypes = data;
+        selectedType = ''
     }
 
-    async function doPost(): Promise <void> {
-        if (selectedType === transactionTypes[0]) {
+    function calculateFee(type: string, rawAmount: string): number {
+        const amount = currencySanitizer(rawAmount);
+
+        if (!type || amount <= 0) {
+            toast.error(useNotice.general.invalidField);
+            return 0;
+        }
+
+        const ranges = paymentRanges[type];
+
+        if (!ranges || !Array.isArray(ranges)) {
+            toast.error("Konfigurasi biaya tidak ditemukan untuk tipe ini.");
+            return 0;
+        }
+
+        const matchedRange = ranges.find(range =>
+            amount >= range.RANGE_START && amount <= range.RANGE_END
+        );
+
+        return matchedRange ? matchedRange.FEE : 0;
+    }
+
+    async function doPost(): Promise<void> {
+        if (!selectedType || !transactionAmount) {
             toast.error(useNotice.general.invalidField);
             return;
         }
 
-        const useFee = calculateFee(selectedType, currencySanitizer(transactionAmount));
+        const sanitizedAmount = currencySanitizer(transactionAmount);
+        const useFee = calculateFee(selectedType, transactionAmount);
+        
+        const { status, message } = await db({
+            TYPE: selectedType,
+            AMOUNT: sanitizedAmount,
+            FEE: useFee,
+            TOKEN: $useConfiguration.token,
+            USAHA: $useConfiguration.usaha
+        }, 'E-Money/Insert')
+
+        if (status === "error") {
+            toast.error(message);
+            return;
+        }
 
         transactions = [...transactions, {
             type: selectedType,
-            amount: currencySanitizer(transactionAmount),
+            amount: sanitizedAmount,
             fee: useFee,
             timestamp: new Date().toLocaleString()
-        }]
+        }];
 
-        selectedType = transactionTypes[0];
+        selectedType = '';
         transactionAmount = '';
-        toast.success("Transaksi berhasil disimpan!");
+        toast.success(message);
     }
 </script>
 <Navigation/>
@@ -128,8 +128,9 @@
                 <div class="form-group">
                     <label for="transactionType" class="form-label fw-bold">Jenis Transaksi</label>
                     <select id="transactionType" class="form-select" bind:value={selectedType}>
+                        <option value="" selected disabled>Pilih Tipe</option>
                         {#each transactionTypes as type}
-                            <option value={type}>{type}</option>
+                            <option value={type.NAME}>{type.NAME}</option>
                         {/each}
                     </select>
                 </div>
