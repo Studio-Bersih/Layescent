@@ -1,170 +1,245 @@
-<!-- <script lang="ts">
-	import { onMount } from 'svelte';
-	import { toast } from 'svelte-sonner';
-	import Navigation from '../../../components/Navigation.svelte';
-
-	let types = $state([]);
-	let ranges = $state([]);
-	let selectedTypeId: number | null = $state(null);
-
-	let newTypeName = $state('');
-	let newRange = $state({
-		range_start: '',
-		range_end: '',
-		fee: ''
-	});
-
-	interface PaymentRangeType {
-		id: number;
-		name: string;
+<script lang="ts">
+    import { onMount } from "svelte";
+    import { toast } from "svelte-sonner";
+	import { db } from "../../../library/hooks/db";
+	import { useNotice } from "../../../library/validator/useNotice";
+	import { useConfiguration } from "../../../config/useConfiguration";
+	import { currencySanitizer, rupiahFormatter } from "../../../library/utils/useFormatter";
+	
+	import Rupiah from "../../../components/shared/Rupiah.svelte";
+	import Navigation from "../../../components/Navigation.svelte";
+   
+	interface Types {
+		ID: number;
+		NAME: string;
+		USAHA: string;
+		CREATED_AT: string;
+		UPDATED_AT: string;
 	}
 
-	interface PaymentRange {
-		id: number;
-		type_id: number;
-		range_start: number;
-		range_end: number;
-		fee: number;
+	interface Ranges {
+		ID: number;
+		TYPE_ID: number;
+		TYPE_NAME: string;
+		USAHA: string;
+		RANGE_START: number;
+		RANGE_END: number;
+		FEE: number;
+		CREATED_AT: string;
+		UPDATED_AT: string;
 	}
 
-	// ========== MOCKED API PLACEHOLDERS ==========
-	async function fetchTypes() {
-		// types = [
-		// 	{ id: 1, name: "Transfer Antar Bank & EDC" },
-		// 	{ id: 2, name: "Penarikan GoPay & QRIS" }
-		// ];
-	}
+	let rangeTypes: Types[] = $state([]);
+    let ranges: Ranges[] = $state([]);
 
-	async function fetchRanges(typeId: number) {
-		// ranges = [
-		// 	{ id: 1, type_id: typeId, range_start: 10000, range_end: 200000, fee: 5000 },
-		// 	{ id: 2, type_id: typeId, range_start: 201000, range_end: 500000, fee: 8000 }
-		// ];
-	}
+    let usaha: string = $useConfiguration.usaha;
+    let newTypeName: string = $state('');
 
-	async function addType() {
-		// if (!newTypeName.trim()) return toast.error("Nama tipe tidak boleh kosong!");
-		// const newType = { id: Date.now(), name: newTypeName };
-		// types = [...types, newType];
-		// newTypeName = '';
-		// toast.success("Jenis transaksi ditambahkan.");
-	}
+    let selectedTypeId: number = $state(0);
+    let rangeStart: string = $state('');
+    let rangeEnd: string = $state('');
+    let fee: string = $state('');
 
-	async function deleteType(id: number) {
-		// if (!confirm("Yakin ingin menghapus tipe ini beserta semua range-nya?")) return;
-		// types = types.filter(t => t.id !== id);
-		// if (selectedTypeId === id) {
-		// 	selectedTypeId = null;
-		// 	ranges = [];
-		// }
-		// toast.success("Tipe berhasil dihapus.");
-	}
+    onMount(async () => {
+        await loadTypes();
+        await loadRanges();
+    });
 
-	async function addRange() {
-		// const { range_start, range_end, fee } = newRange;
-		// if (!selectedTypeId || !range_start || !range_end || !fee)
-		// 	return toast.error("Semua data harus diisi!");
+    async function loadTypes(): Promise <void> {
+		const { status, message, data } = await db({
+			USAHA: usaha
+		}, 'E-Money/Ranged');
 
-		// const newId = Date.now();
-		// ranges = [
-		// 	...ranges,
-		// 	{ id: newId, type_id: selectedTypeId, range_start: +range_start, range_end: +range_end, fee: +fee }
-		// ];
-		// newRange.range_start = '';
-		// newRange.range_end = '';
-		// newRange.fee = '';
-		// toast.success("Range fee ditambahkan.");
-	}
+		if (status === "error") {
+			toast.error(message);
+			return;
+		}
 
-	async function deleteRange(id: number) {
-		// if (!confirm("Hapus range ini?")) return;
-		// ranges = ranges.filter(r => r.id !== id);
-		// toast.success("Range berhasil dihapus.");
-	}
+		rangeTypes = data;
+    }
 
-	onMount(async () => {
-		await fetchTypes();
-	});
+    async function loadRanges(): Promise <void> {
+  		const { status, message, data } = await db({
+			USAHA: usaha
+		}, 'E-Money/Ranged-Types');
+
+		if (status === "error") {
+			toast.error(message);
+			return;
+		}
+
+		let updatedRanges: Ranges[] = [];
+		data.forEach((rangeItem: Ranges) => {
+			const matchedType = rangeTypes.find((type: Types) => type.ID === rangeItem.TYPE_ID);
+			const typeName = matchedType ? matchedType.NAME : 'Tidak Ditemukan';
+
+			updatedRanges = [...updatedRanges,{
+				ID: rangeItem.ID,
+				TYPE_ID: rangeItem.TYPE_ID,
+				TYPE_NAME: typeName,
+				USAHA: rangeItem.USAHA,
+				RANGE_START: rangeItem.RANGE_START,
+				RANGE_END: rangeItem.RANGE_END,
+				FEE: rangeItem.FEE,
+				CREATED_AT: rangeItem.CREATED_AT,
+				UPDATED_AT: rangeItem.UPDATED_AT
+			}];
+		});
+
+		ranges = updatedRanges;
+    }
+
+    async function addType() {
+		toast('Anda akan membuat tipe baru.', {
+			action: {
+			label: useNotice.toast.areYouSure,
+				onClick: async () => {
+					const { status, message, data } = await db({
+						name: newTypeName,
+						usaha: usaha,
+					}, 'E-Money/Insert-Type');
+
+					if (status === "error") {
+						toast.error(message);
+						return;
+					}
+
+					toast.success(message);
+					await loadTypes();
+				}
+			},
+		});
+    }
+
+    async function addRange() {
+		toast('Anda akan membuat rentang baru.', {
+			action: {
+			label: useNotice.toast.areYouSure,
+				onClick: async () => {
+					const { status, message, data } = await db({
+						type_id: selectedTypeId,
+						range_start: currencySanitizer(rangeStart),
+						range_end: currencySanitizer(rangeEnd),
+						fee: currencySanitizer(fee)
+					}, 'E-Money/Insert-Range');
+
+					if (status === "error") {
+						toast.error(message);
+						return;
+					}
+
+					toast.success(message);
+					rangeStart =  '';
+					rangeEnd = ''; 
+					fee = '';
+					await loadRanges();
+				}
+			},
+		});
+    }
+
+    async function deleteRange(id: number) {
+		toast('Konfirmasi Penghapusan!', {
+			description: 'Anda tidak dapat mengembalikan tindakan ini',
+			action: {
+			label: useNotice.toast.confirmDelete,
+				onClick: async () => {
+					const { status, message } = await db({
+						id: id
+					}, 'E-Money/Delete-Range');
+
+					if (status === "error") {
+						toast.error(message);
+						return;
+					}
+
+					toast.success(message);
+					rangeStart =  '';
+					rangeEnd = ''; 
+					fee = '';
+					await loadRanges();
+				}
+			},
+		});
+    }
 </script>
 <Navigation/>
-<div class="container mt-4">
-	<!-- Add New Transaction Type -->
-	<div class="card mb-4">
-		<div class="card-body">
-			<h5 class="card-title">Tambah Jenis Transaksi</h5>
-			<div class="input-group">
-				<input type="text" class="form-control" placeholder="Nama Tipe Baru" bind:value={newTypeName}/>
-				<button class="btn btn-primary" onclick={addType}>Tambah</button>
-			</div>
-		</div>
-	</div>
+<div class="container my-5">
+    <div class="row">
+        <!-- Add New Type -->
+        <div class="col-md-6">
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">Tambah Tipe Transaksi</h5>
+                    <div class="mb-3">
+                        <label for="namaTipe" class="form-label">Nama Tipe</label>
+                        <input type="text" bind:value={newTypeName} class="form-control" placeholder="Cth: Pembayaran E-Money" />
+                    </div>
+                    <button onclick={addType} class="btn btn-primary">Tambah</button>
+                </div>
+            </div>
+        </div>
 
-	<!-- Transaction Type List -->
-	<div class="card mb-4">
-		<div class="card-body">
-			<h5 class="card-title">Daftar Jenis Transaksi</h5>
-			<ul class="list-group">
-				{#each types as type}
-					<li class="list-group-item d-flex justify-content-between align-items-center">
-						<span role="button" onclick={() => {selectedTypeId = type.id; fetchRanges(type.id); }}>{type.name}</span>
-						<button class="btn btn-sm btn-outline-danger" onclick={() => deleteType(type.id)}>
-							Hapus
-						</button>
-					</li>
-				{/each}
-			</ul>
-		</div>
-	</div>
+        <!-- Add New Range -->
+        <div class="col-md-6">
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">Tambah Range Biaya</h5>
+                    <div class="mb-3">
+                        <label for="pilihTipe" class="form-label">Pilih Tipe</label>
+                        <select bind:value={selectedTypeId} class="form-select">
+                            <option value={0}>-- Pilih Tipe --</option>
+                            {#each rangeTypes as type}
+                                <option value={type.ID}>{type.NAME}</option>
+                            {/each}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="rangeAwal" class="form-label">Range Awal</label>
+						<Rupiah id="startRange" bind:value={rangeStart} useClass="form-control"/>
+                    </div>
+                    <div class="mb-3">
+                        <label for="rangeAkhir" class="form-label">Range Akhir</label>
+						<Rupiah id="endRange" bind:value={rangeEnd} useClass="form-control"/>
+                    </div>
+                    <div class="mb-3">
+                        <label for="biaya" class="form-label">Biaya</label>
+						<Rupiah id="fees" bind:value={fee} useClass="form-control"/>
+                    </div>
+                    <button onclick={addRange} class="btn btn-success">Tambah Range</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
-	<!-- Fee Range Table -->
-	{#if selectedTypeId}
-		<div class="card mb-5">
-			<div class="card-body">
-				<h5 class="card-title">
-					Range Biaya - {types.find(t => t.id === selectedTypeId)?.name}
-				</h5>
-
-				<table class="table table-bordered mt-3">
-					<thead class="table-light">
-						<tr>
-							<th>Start</th>
-							<th>End</th>
-							<th>Fee</th>
-							<th>Aksi</th>
-						</tr>
-					</thead>
-					<tbody>
-						{#each ranges as range}
-							<tr>
-								<td>{range.range_start}</td>
-								<td>{range.range_end}</td>
-								<td>{range.fee}</td>
-								<td>
-									<button class="btn btn-sm btn-danger" onclick={() => deleteRange(range.id)}>
-										Hapus
-									</button>
-								</td>
-							</tr>
-						{/each}
-					</tbody>
-				</table>
-
-				<!-- Add New Fee Range -->
-				<div class="row mt-4 g-2">
-					<div class="col-md-3">
-						<input type="number" class="form-control" placeholder="Start" bind:value={newRange.range_start} />
-					</div>
-					<div class="col-md-3">
-						<input type="number" class="form-control" placeholder="End" bind:value={newRange.range_end} />
-					</div>
-					<div class="col-md-3">
-						<input type="number" class="form-control" placeholder="Fee" bind:value={newRange.fee} />
-					</div>
-					<div class="col-md-3">
-						<button class="btn btn-success w-100" onclick={addRange}>Tambah Range</button>
-					</div>
-				</div>
-			</div>
-		</div>
-	{/if}
-</div> -->
+    <!-- Ranges Table -->
+    <div class="card">
+        <div class="card-body">
+            <h5 class="card-title">Daftar Range Biaya</h5>
+            <table class="table table-bordered table-striped">
+                <thead>
+                    <tr class="text-center fw-bold">
+                        <th>Tipe</th>
+                        <th>Range Start</th>
+                        <th>Range End</th>
+                        <th>Fee</th>
+                        <th>Aksi</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {#each ranges as data}
+                        <tr>
+                            <td>{data.TYPE_NAME}</td>
+                            <td>{rupiahFormatter.format(data.RANGE_START)}</td>
+                            <td>{rupiahFormatter.format(data.RANGE_END)}</td>
+                            <td>{rupiahFormatter.format(data.FEE)}</td>
+                            <td>
+                                <button class="btn btn-danger btn-sm" onclick={() => deleteRange(data.ID)}>Hapus</button>
+                            </td>
+                        </tr>
+                    {/each}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
