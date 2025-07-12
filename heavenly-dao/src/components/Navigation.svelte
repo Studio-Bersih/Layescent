@@ -73,7 +73,7 @@
 
     const reportBar: Sidebar[] = [
         { icon: '/icons/outlet/Assets-Report/Rekap-Pesanan.svg', name: 'Omset Bulanan', url: '/outlet/report/rekap-pesanan', isAdministrator: false },
-        { icon: '/icons/outlet/Assets-Report/Pembelian.svg', name: 'Keuntungan E-Money', url: '/outlet/report/pembelian', isAdministrator: false },
+        { icon: '/icons/outlet/Assets-Report/Pembelian.svg', name: 'Keuntungan E-Money', url: '/report/e-money', isAdministrator: false },
     ];
 
     onMount(() => {
