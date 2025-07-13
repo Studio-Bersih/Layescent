@@ -2,12 +2,13 @@
     import { onMount } from "svelte";
     import { toast } from "svelte-sonner";
     import { db } from "../../../library/hooks/db";
-    import Navigation from "../../../components/Navigation.svelte";
+	import { Carbon } from "../../../library/utils/Carbon";
     import { useConfiguration } from "../../../config/useConfiguration";
     import { rupiahFormatter } from "../../../library/utils/useFormatter";
 	import { initializeDate } from "../../../library/validator/useDefault";
-	import { Carbon } from "../../../library/utils/Carbon";
 
+    import Navigation from "../../../components/Navigation.svelte";
+    
     interface Rekap {
         ID: number;
         TYPE: string;

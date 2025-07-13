@@ -1,11 +1,12 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { useConfiguration } from '../config/useConfiguration';
-	import { goto } from '$app/navigation';
 	import { toast } from 'svelte-sonner';
-	import { db } from '../library/hooks/db';
+	import { goto } from '$app/navigation';
+	import { useNotice } from '../library/validator/useNotice';
+	import { useConfiguration } from '../config/useConfiguration';
 	import { capitalizeEachWord } from '../library/utils/useFormatter';
-	import Drawer from './shared/Drawer.svelte';
+
+    import Drawer from './shared/Drawer.svelte';
 
     interface Sidebar { 
         icon: string;
@@ -19,7 +20,6 @@
     let time: Date = $state(new Date());
     let activeMenu: string = $state('Bar');
     let isDrawer: boolean = $state(false);
-    let isOption: boolean = $state(false);
     let sideBar: Sidebar[] = $state([]);
 
     const transaksiBar: Sidebar[] = [
@@ -35,9 +35,8 @@
 
     const reportBar: Sidebar[] = [
         { icon: '/icons/outlet/Assets-Transaksi/Retail.svg', name: 'Penjualan Retail', url: '/report/retail', isAdministrator: false },
-        { icon: '/icons/outlet/Assets-Transaksi/Pesanan.svg', name: 'E Money', url: '/e-money', isAdministrator: false },
-        { icon: '/icons/outlet/Assets-Report/Rekap-Pesanan.svg', name: 'Omset Bulanan', url: '/report/monthly-retail', isAdministrator: false },
         { icon: '/icons/outlet/Assets-Report/Pembelian.svg', name: 'Keuntungan E-Money', url: '/report/e-money', isAdministrator: false },
+        { icon: '/icons/outlet/Assets-Report/Rekap-Pesanan.svg', name: 'Omset Bulanan', url: '/report/monthly-retail', isAdministrator: false },
         { icon: '/icons/outlet/Assets-Report/Buku-Besar.svg', name: 'Laporan CSV', url: '/report/csv', isAdministrator: false },
     ];
 
@@ -67,40 +66,53 @@
     }
 
     async function logOut() {
-        const { status, message } = await db({
-            LOGS: ''
-        }, 'Auth/Keluar');
+        toast('Logout', {
+            description: 'Apakah anda yakin?',
+            action: {
+                label: useNotice.toast.areYouSure,
+                onClick: () => {
+                    $useConfiguration = {
+                        isProduction: false,
+                        token: '',
+                        usaha: '',
+                        roles: '',
+                        emoney: {
+                            "Transfer Antar Bank & EDC": [
+                                { rangeStart: 10000, rangeEnd: 50000, fee: 1000 },
+                                { rangeStart: 50001, rangeEnd: 100000, fee: 2000 },
+                                { rangeStart: 100001, rangeEnd: 500000, fee: 3000 },
+                                { rangeStart: 500001, rangeEnd: Infinity, fee: 5000 }
+                            ],
+                            "Penarikan GoPay & QRIS": [
+                                { rangeStart: 10000, rangeEnd: 50000, fee: 1500 },
+                                { rangeStart: 50001, rangeEnd: 100000, fee: 2500 },
+                                { rangeStart: 100001, rangeEnd: Infinity, fee: 4000 }
+                            ],
+                            "Top Up Maxim": [
+                                { rangeStart: 10000, rangeEnd: Infinity, fee: 2000 }
+                            ],
+                            "Isi Ulang Token PLN": [
+                                { rangeStart: 20000, rangeEnd: Infinity, fee: 3000 }
+                            ]
+                        }
+                    }
 
-        if (status === "success") {
-            toast.info(message);
-        } else {
-            toast.error(message);
-            return;
-        }
-
-        $useConfiguration.token = '';
-        $useConfiguration.roles = '';
-        $useConfiguration.usaha = '';
-        return goto('/')
+                    localStorage.clear();
+                    toast.dismiss();
+                    toast.success("Anda berhasil keluar dari sistem.")
+                    return goto('/');
+                }
+            },
+        });
     }
 </script>
 <nav class="outlet-nav p-2 bg-white shadow-sm">
     <div class="row mx-3">
         <div class="col">
             <div class="row">
-                <!-- <div class="col-2">
-                    {#if permissibleRoutes.includes(page.url.pathname) }
-                        <img src="/icons/Chocoa.svg" alt="" class="h-20px ms-7 mt-3">
-                    {:else}
-                        <button type="button" onclick={goBack} class="btn btn-xs btn-dark mt-2">
-                            <img src="/icons/Back.svg" alt="Back Icon" class="h-10px me-2 svg-white" />
-                            Halaman Sebelumnya
-                        </button>
-                    {/if}
-                </div> -->
                 <div class="col">
                     <div class="form-group mt-1">
-                        <button type="button" onclick={() => openSidebar('Bar')} class="btn btn-sm fw-bolder {activeMenu ===  'Bar' ? 'text-golden' : 'text-gray-600' }">Chocoa's Bar</button>
+                        <button type="button" onclick={() => openSidebar('Bar')} class="btn btn-sm fw-bolder {activeMenu ===  'Bar' ? 'text-golden' : 'text-gray-600' }">Menu</button>
                         <button type="button" onclick={() => openSidebar('Report')} class="btn btn-sm fw-bolder {activeMenu ===  'Report' ? 'text-golden' : 'text-gray-600' }">Report</button>
                         <button type="button" class="btn btn-sm btn-flush text-muted disabled">|</button>
                         <a href="/retail" class="btn btn-sm fw-bolder {activeMenu ===  'Retail' ? 'text-golden' : 'text-gray-600' }">Retail</a>
@@ -122,23 +134,15 @@
                         {`${String(time.getHours()).padStart(2, '0')}:${String(time.getMinutes()).padStart(2, '0')}:${String(time.getSeconds()).padStart(2, '0')}`} WIB
                     </small>
                 </div>
+                <div class="col-2">
+                    <button type="button" onclick={logOut} class="btn btn-sm btn-icon btn-danger">
+                        <img src="/icons/power.svg" class="h-25px" alt="Power off"/>
+                    </button>
+                </div>
             </div>
         </div>
     </div>
 </nav>
-
-{#if isOption}
-    <div class="d-flex justify-content-end rounded-bottom" style="position: absolute; z-index: 1000;left: 0; right: 0;top: 52px;">
-        <div class="p-5 rounded-bottom bg-white" style="box-shadow: 0 4px 8px rgba(0,0,0,0.2)">
-            <a href="/outlet/pengaturan" class="btn btn-flush btn-sm w-100 text-start mb-2">
-                <img src="/icons/Gear.svg" class="h-20px me-3" alt="Pengaturan" /> Pengaturan
-            </a>
-            <button type="button" onclick={logOut} class="btn btn-flush btn-sm w-100 mt-1 text-start">
-                 <img src="/icons/Keluar.svg" class="h-15px me-5" alt="Keluar" /> Keluar
-            </button>
-        </div>
-    </div>
-{/if}
 
 <Drawer isOpen={isDrawer} position="left" width="300px" onClose={() => isDrawer = !isDrawer}>
     <div class="p-4">
@@ -154,14 +158,8 @@
         <div class="my-5"></div>
         
         {#if activeMenu === "Bar"}
-            <!-- {@render useBar('Rekap Transaksi', transaksiBar)} -->
             {@render useBar('Konfigurasi', adjustmentBar)}
-            <!-- {@render useBar('Order Kitchen', orderBar)} -->
-            <!-- {@render useBar('Production', productionBar)} -->
-            <!-- {@render useBar('Akuntansi', akuntansiBar)} -->
-            <!-- {@render useBar('Perbaikan Transaksi', perbaikanBar)} -->
         {:else if activeMenu === "Report"}
-            <!-- {@render useBar('Ekspor CSV', csvBar)} -->
             {@render useBar('Report Outlet', reportBar)}
         {/if}
 
