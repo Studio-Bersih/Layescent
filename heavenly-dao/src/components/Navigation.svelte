@@ -30,45 +30,8 @@
     const adjustmentBar: Sidebar[] = [
         { icon: '/icons/outlet/Assets-Adjustment/Pre-Adjustment.svg', name: 'Master Produk', url: '/master', isAdministrator: false },
         { icon: '/icons/outlet/Assets-Adjustment/Pre-Adjustment.svg', name: 'Set E-Payment', url: '/configuration/e-money', isAdministrator: false },
-        { icon: '/icons/outlet/Assets-Adjustment/Item-Transfer.svg', name: 'Item Masuk', url: '/outlet/adjustment/item-transfer', isAdministrator: false },
+        { icon: '/icons/outlet/Assets-Adjustment/Item-Transfer.svg', name: 'Karyawan', url: '/employee', isAdministrator: false },
         { icon: '/icons/outlet/Assets-Adjustment/Item-Keluar.svg', name: 'Item Keluar', url: '/outlet/adjustment/item-keluar', isAdministrator: false },
-    ];
-
-    const orderBar: Sidebar[] = [
-        // { icon: '/icons/outlet/Assets-Order-Kitchen/List-Order.svg', name: 'Stok Outlet', url: '/outlet/order-kitchen/stok-outlet', isAdministrator: false },
-        { icon: '/icons/outlet/Assets-Order-Kitchen/List-Order.svg', name: 'List Order', url: '/outlet/order-kitchen/list-order', isAdministrator: false },
-        { icon: '/icons/outlet/Assets-Order-Kitchen/Pengiriman.svg', name: 'Pengiriman', url: '/outlet/order-kitchen/pengiriman', isAdministrator: false },
-    ];
-
-    const productionBar: Sidebar[] = [
-        { icon: '/icons/outlet/Assets-Order-Kitchen/Draft-Produksi.svg', name: 'Draft Produksi', url: '/outlet/order-kitchen/draft-produksi', isAdministrator: false },
-        { icon: '/icons/outlet/Assets-Order-Kitchen/List-Produksi.svg', name: 'List Produksi', url: '/outlet/order-kitchen/list-produksi', isAdministrator: false },
-        { icon: '/icons/outlet/Assets-Order-Kitchen/Afkir-Produksi.svg', name: 'Afkir Produksi', url: '/outlet/order-kitchen/afkir-produksi', isAdministrator: false },
-    ];
-
-    const akuntansiBar: Sidebar[] = [
-        { icon: '/icons/outlet/Assets-Akutansi/Kas-Masuk.svg', name: 'Kas Masuk', url: '/outlet/akuntansi/kas-masuk', isAdministrator: false },
-        { icon: '/icons/outlet/Assets-Akutansi/Kas-Keluar.svg', name: 'Kas Keluar', url: '/outlet/akuntansi/kas-keluar', isAdministrator: false },
-        { icon: '/icons/outlet/Assets-Akutansi/Session.svg', name: 'Session', url: '/outlet/akuntansi/session', isAdministrator: false },
-        { icon: '/icons/outlet/Assets-Akutansi/Closing.svg', name: 'Closing', url: '/outlet/akuntansi/closing', isAdministrator: false },
-    ];
-
-    const perbaikanBar: Sidebar[] = [
-        { icon: '/icons/outlet/Assets-Perbaikan-Transaksi/Request-Perbaikan.svg', name: 'Perbaikan Transaksi Outlet', url: '/outlet/perbaikan-transaksi/staff', isAdministrator: false },
-    ];
-
-    const csvBar: Sidebar[] = [
-        { icon: '/icons/outlet/Assets-Report/CSV/Forecast.svg', name: 'Forecast Outlet', url: '/outlet/report/csv/forecast', isAdministrator: false },
-        { icon: '/icons/outlet/Assets-Report/CSV/Kartu-Stok.svg', name: 'Kartu Stok', url: '/outlet/report/csv/kartu-stok', isAdministrator: false },
-        { icon: '/icons/outlet/Assets-Report/CSV/Rekap-Penjualan.svg', name: 'Rekap Penjualan', url: '/outlet/report/csv/penjualan-pesanan', isAdministrator: false },
-        { icon: '/icons/outlet/Assets-Report/CSV/Rekap-Pesanan.svg', name: 'Rekap Pesanan', url: '/outlet/report/csv/penjualan-pesanan', isAdministrator: false },
-        { icon: '/icons/outlet/Assets-Report/CSV/Ultah-Member.svg', name: 'Ulang Tahun Member', url: '/outlet/report/csv/ultah-member', isAdministrator: false },
-        { icon: '/icons/outlet/Assets-Report/CSV/Stok-Opname.svg', name: 'Stok Opname', url: '/outlet/report/csv/opname', isAdministrator: false },
-        { icon: '/icons/outlet/Assets-Report/CSV/Buku-Besar.svg', name: 'Buku Besar', url: '/outlet/report/csv/buku-besar', isAdministrator: false },
-        { icon: '/icons/outlet/Assets-Report/CSV/Selisih-Kas.svg', name: 'Selisih Kas', url: '/outlet/report/csv/selisih-kas', isAdministrator: false },
-        { icon: '/icons/outlet/Assets-Report/CSV/Mutasi-Item.svg', name: 'Mutasi Item', url: '/outlet/report/csv/mutasi-item', isAdministrator: false },
-        { icon: '/icons/outlet/Assets-Report/CSV/Item-Keluar.svg', name: 'Item Keluar', url: '/outlet/report/csv/item-keluar', isAdministrator: false },
-        { icon: '/icons/outlet/Assets-Report/CSV/Afkir.svg', name: 'Afkir', url: '/outlet/report/csv/afkir', isAdministrator: false },
     ];
 
     const reportBar: Sidebar[] = [
