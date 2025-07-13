@@ -28,7 +28,7 @@
     ];
 
     const adjustmentBar: Sidebar[] = [
-        { icon: '/icons/outlet/Assets-Adjustment/Pre-Adjustment.svg', name: 'Master Produk', url: '/outlet/adjustment/pre-adjustment', isAdministrator: false },
+        { icon: '/icons/outlet/Assets-Adjustment/Pre-Adjustment.svg', name: 'Master Produk', url: '/master', isAdministrator: false },
         { icon: '/icons/outlet/Assets-Adjustment/Pre-Adjustment.svg', name: 'Set E-Payment', url: '/configuration/e-money', isAdministrator: false },
         { icon: '/icons/outlet/Assets-Adjustment/Item-Transfer.svg', name: 'Item Masuk', url: '/outlet/adjustment/item-transfer', isAdministrator: false },
         { icon: '/icons/outlet/Assets-Adjustment/Item-Keluar.svg', name: 'Item Keluar', url: '/outlet/adjustment/item-keluar', isAdministrator: false },
