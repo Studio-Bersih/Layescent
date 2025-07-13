@@ -189,7 +189,8 @@
             totalTransaksi : paidTotal,
             kembalian: currencySanitizer(paidChanges),
             keterangan: keterangan,
-            pic : $useConfiguration.token
+            pic : $useConfiguration.token,
+            usaha: $useConfiguration.usaha,
         }, 'Post-Transaction');
 
         isLoading = false;

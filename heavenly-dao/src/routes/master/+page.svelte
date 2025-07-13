@@ -18,7 +18,9 @@
         hargaStok: number; 
         hargaJual: number; 
         keterangan: string; 
-        stokItem: number 
+        stokItem: number;
+        stokItemSecond: number;
+        stokItemThird: number;
     }
 
     let newData: Master[] = $state([]);
@@ -30,7 +32,9 @@
     let hargaStok: string = $state('');
     let hargaJual: string = $state('');
     let keterangan: string = $state('');
-    let stokItem: number | null = $state(null); 
+    let stokItem: number | null = $state(null);
+    let stokItemSecond: number | null = $state(null);
+    let stokItemThird: number | null = $state(null);
 
     let searchByNameController: HTMLElement;
     let searchBar: string = $state('');
@@ -52,23 +56,27 @@
         const { status, message, data } = await db({
             TOKEN: $useConfiguration.token,
             USAHA: $useConfiguration.usaha,
-            CABANG: $useConfiguration.cabang
-        }, 'List-Item');
+        }, 'Master-Product');
 
         if (status === "error") {
             toast.error(message);
             return
         }
 
-        newData = data.map((element: { ID: number; NAMA: string; BARCODE: string; JENIS: string; STOK_ITEM: number; HARGA_STOK: number; HARGA_JUAL: number; KETERANGAN: string }) => ({
-            id: element.ID,
-            name: element.NAMA,
-            jenis: element.JENIS,
-            barcode: element.BARCODE,
-            hargaStok: element.HARGA_STOK,
-            hargaJual: element.HARGA_JUAL,
-            keterangan: element.KETERANGAN,
-            stokItem: element.STOK_ITEM,
+        newData = data.map((element: { 
+            ID: number; NAMA: string; BARCODE: string; JENIS: string; 
+            STOK_ITEM: number; STOK_ITEM_SECOND: number; STOK_ITEM_THIRD: number;
+            HARGA_STOK: number; HARGA_JUAL: number; KETERANGAN: string }) => ({
+                id: element.ID,
+                name: element.NAMA,
+                jenis: element.JENIS,
+                barcode: element.BARCODE,
+                hargaStok: element.HARGA_STOK,
+                hargaJual: element.HARGA_JUAL,
+                keterangan: element.KETERANGAN,
+                stokItem: element.STOK_ITEM,
+                stokItemSecond: element.STOK_ITEM_SECOND,
+                stokItemThird: element.STOK_ITEM_THIRD
         }));
         newDataDefault = newData;
     }
@@ -115,8 +123,6 @@
     }
 
     function viewForm(): boolean {
-        // isHidden = !isHidden;
-        // return isHidden;
         removeAll();
         currentPage = "create";
         isModal = !isModal;
@@ -163,7 +169,9 @@
                         hargaStok : currencySanitizer(hargaStok),
                         hargaJual : currencySanitizer(hargaJual),
                         keterangan : keterangan,
-                        stokItem: stokItem ?? 1
+                        stokItem: stokItem ?? 0,
+                        stokItemSecond: stokItemSecond ?? 0,
+                        stokItemThird: stokItemThird ?? 0
                     });
                     newData = newData;
                     removeAll();
@@ -173,20 +181,22 @@
 
     }
 
-    async function updateStock(id: number, stock: number): Promise <void> {
+    async function updateStock(id: number, stock: number, secondStock: number, thirdStock: number): Promise <void> {
         toast('Update Stok', {
             description: 'Apakah anda yakin?',
             action: {
                 label: useNotice.toast.areYouSure,
                 onClick: async () => {
                     if (stock < 1) {
-                        toast.error("Stok tidak boleh dibawah 0!");
+                        toast.error("Stok cabang 1 tidak boleh dibawah 0!");
                         return;
                     }
 
                     const { status , message } = await db({
                         id : id,
-                        stock : stock
+                        stock : stock,
+                        secondStock: secondStock,
+                        thirdStock: thirdStock
                     }, 'Update-Stock');
 
                     if (status === 'error') {
@@ -302,10 +312,6 @@
                 </div>
             </div>
 
-            {#if isHidden}
-                <!--  -->
-            {/if}
-
             <div class="separator my-10"></div>
 
             <h1 class="mb-7">Daftar Item</h1>
@@ -321,14 +327,16 @@
                             <th class="text-center">Harga Stok</th>
                             <th class="text-center">Harga Jual</th>
                             <th>Keterangan</th>
-                            <th class="text-center">Stok Item</th>
+                            <th class="text-center">Cabang 1</th>
+                            <th class="text-center">Cabang 2</th>
+                            <th class="text-center">Cabang 3</th>
                             <th></th>
                         </tr>
                     </thead>
                     <tbody>
                         {#if newData.length === 0}
                             <tr>
-                                <td colspan="8" class="text-center">Tidak ada data</td>
+                                <td colspan="10" class="text-center">Tidak ada data</td>
                             </tr>
                         {:else}
                             {#each newData as newData, index }
@@ -343,8 +351,14 @@
                                     <td width="10%" class="text-center">
                                         <input type="number" bind:value={newData.stokItem} class="form-control form-control-sm text-center"/>
                                     </td>
+                                    <td width="10%" class="text-center">
+                                        <input type="number" bind:value={newData.stokItemSecond} class="form-control form-control-sm text-center"/>
+                                    </td>
+                                    <td width="10%" class="text-center">
+                                        <input type="number" bind:value={newData.stokItemThird} class="form-control form-control-sm text-center"/>
+                                    </td>
                                     <td>
-                                        <button type="button" onclick={() => updateStock(newData.id, newData.stokItem)} class="btn btn-sm btn-icon btn-primary mb-1">
+                                        <button type="button" onclick={() => updateStock(newData.id, newData.stokItem, newData.stokItemSecond, newData.stokItemThird)} class="btn btn-sm btn-icon btn-primary mb-1">
                                             <img src="/icons/sync.svg" class="h-25px" alt="SVG Synchronize" />
                                         </button>
                                         <button type="button" onclick={() => viewModal(newData.id, "update")} class="btn btn-sm btn-icon btn-warning mb-1">

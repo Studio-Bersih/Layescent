@@ -66,7 +66,9 @@
                     }
 
                     const { status, message } = await db({ 
-                        id : id 
+                        id : id,
+                        token: $useConfiguration.token,
+                        usaha: $useConfiguration.usaha
                     }, 'Delete-Detail-Penjualan');
 
                     isLoading = false;
@@ -141,7 +143,7 @@
                             {/each}
                             <tr>
                                 <td colspan="6" class="text-center fw-bolder bg-light-success">Total Transaksi</td>
-                                <td class="text-start" colspan="2">{rupiahFormatter.format(totalTransaksi)}</td>
+                                <td class="text-center">{rupiahFormatter.format(totalTransaksi)}</td>
                             </tr>
                         {/if}
                     </tbody>
