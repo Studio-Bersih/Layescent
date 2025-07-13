@@ -85,7 +85,7 @@
     }
 </script>
 <nav class="outlet-nav p-2 bg-white shadow-sm">
-    <div class="row">
+    <div class="row mx-3">
         <div class="col">
             <div class="row">
                 <!-- <div class="col-2">

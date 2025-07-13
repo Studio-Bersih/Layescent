@@ -80,26 +80,28 @@
 
     }
 </script>
-<Navigation/>
-<div class="card shadow-sm my-7">
-    <div class="card-body">
-        <form onsubmit={doPost} class="row">
-            <div class="col">
-                <label for="chooseDate" class="form-label fw-bold">Pilih Tanggal</label>
-                <input id="chooseDate" type="date" bind:value={date} class="form-control form-control-sm" required/>
-            </div>
-            <div class="col">
-                <label for="chooseUser" class="form-label fw-bold">Pilih Pengguna</label>
-                <select bind:value={users} class="form-select form-select-sm" required>
-                    <option value="" selected disabled>Pilih User</option>
-                    {#each listUsers as data}
-                        <option value="{data.TOKEN}">{data.TOKEN}</option>
-                    {/each}
-                </select>
-            </div>
-            <button type="submit" class="btn btn-sm btn-success w-100 my-3">
-                <img src="/icons/excel.svg" class="h-20px me-2" alt="SVG Excel" /> Unduh Laporan
-            </button>
-        </form>
+<div class="container">
+    <Navigation/>
+    <div class="card shadow-sm my-7">
+        <div class="card-body">
+            <form onsubmit={doPost} class="row">
+                <div class="col">
+                    <label for="chooseDate" class="form-label fw-bold">Pilih Tanggal</label>
+                    <input id="chooseDate" type="date" bind:value={date} class="form-control form-control-sm" required/>
+                </div>
+                <div class="col">
+                    <label for="chooseUser" class="form-label fw-bold">Pilih Pengguna</label>
+                    <select bind:value={users} class="form-select form-select-sm" required>
+                        <option value="" selected disabled>Pilih User</option>
+                        {#each listUsers as data}
+                            <option value="{data.TOKEN}">{data.TOKEN}</option>
+                        {/each}
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-sm btn-success w-100 my-3">
+                    <img src="/icons/excel.svg" class="h-20px me-2" alt="SVG Excel" /> Unduh Laporan
+                </button>
+            </form>
+        </div>
     </div>
 </div>

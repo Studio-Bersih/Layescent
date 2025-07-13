@@ -113,8 +113,8 @@
         toast.success(message);
     }
 </script>
-<Navigation/>
 <div class="container">
+    <Navigation/>
     <div class="row">
         <div class="col">{@render useForm()}</div>
         <div class="col">{@render useHistory()}</div>

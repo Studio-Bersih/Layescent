@@ -57,39 +57,41 @@
             });
     }
 </script>
-<Navigation/>
-
-<div class="container my-4">
-    <h2>Laporan E-Money</h2>
-
-    <div class="row g-3 my-3">
-        <div class="col-md-3">
-            <label for="startDate" class="form-label fw-bold">Tanggal Mulai</label>
-            <input type="date" class="form-control" bind:value={startDate} />
-        </div>
-        <div class="col-md-3">
-            <label for="endDate" class="form-label fw-bold">Tanggal Selesai</label>
-            <input type="date" class="form-control" bind:value={endDate} />
-        </div>
-        <div class="col-md-3">
-            <label for="setPIC" class="form-label fw-bold">Person in Charge</label>
-            <input type="text" class="form-control" bind:value={filteredToken} placeholder="Cth: tokengopay123" />
-        </div>
-        <div class="col-md-3 d-flex align-items-end">
-            <button class="btn btn-primary w-100" onclick={initializePage}>Tampilkan</button>
-        </div>
-    </div>
-
-    <div class="card mb-4">
+<div class="container">
+    <Navigation/>
+    <div class="card my-4">
         <div class="card-body">
-            <h5>Ringkasan</h5>
-            <p>Total Nominal: <strong>{rupiahFormatter.format(totalAmount)}</strong></p>
-            <p>Total Admin: <strong>{rupiahFormatter.format(totalFee)}</strong></p>
-        </div>
-    </div>
 
-    <div class="card">
-        <div class="card-body">
+            <h2>Laporan E-Money</h2>
+
+            <div class="row g-3 my-3">
+                <div class="col-md-3">
+                    <label for="startDate" class="form-label fw-bold">Tanggal Mulai</label>
+                    <input type="date" class="form-control" bind:value={startDate} />
+                </div>
+                <div class="col-md-3">
+                    <label for="endDate" class="form-label fw-bold">Tanggal Selesai</label>
+                    <input type="date" class="form-control" bind:value={endDate} />
+                </div>
+                <div class="col-md-3">
+                    <label for="setPIC" class="form-label fw-bold">Person in Charge</label>
+                    <input type="text" class="form-control" bind:value={filteredToken} placeholder="Cth: tokengopay123" />
+                </div>
+                <div class="col-md-3 d-flex align-items-end">
+                    <button class="btn btn-primary w-100" onclick={initializePage}>Tampilkan</button>
+                </div>
+            </div>
+
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h5>Ringkasan</h5>
+                    <p>Total Nominal: <strong>{rupiahFormatter.format(totalAmount)}</strong></p>
+                    <p>Total Admin: <strong>{rupiahFormatter.format(totalFee)}</strong></p>
+                </div>
+            </div>
+
+            <div class="separator my-3"></div>
+
             <table class="table table-bordered table-hover">
                 <thead class="table-light fw-bold">
                     <tr>

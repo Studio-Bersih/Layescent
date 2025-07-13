@@ -53,26 +53,30 @@
 
     onMount(() => loadReport());
 </script>
-<Navigation />
-<div class="container my-5">
-    <h2>Laporan Penjualan</h2>
+<div class="container">
+    <Navigation />
 
-    <div class="row mb-4">
-        <div class="col">
-            <label for="startDate" class="form-label">Tanggal Mulai</label>
-            <input type="date" class="form-control" bind:value={startDate} />
-        </div>
-        <div class="col">
-            <label for="endDate" class="form-label">Tanggal Akhir</label>
-            <input type="date" class="form-control" bind:value={endDate} />
-        </div>
-        <div class="col d-flex align-items-end">
-            <button class="btn btn-primary w-100" onclick={loadReport}>Tampilkan</button>
-        </div>
-    </div>
-
-    <div class="card mb-4">
+    <div class="card shadow-sm my-4">
         <div class="card-body">
+
+            <h2>Laporan Penjualan</h2>
+
+            <div class="row mb-4">
+                <div class="col">
+                    <label for="startDate" class="form-label">Tanggal Mulai</label>
+                    <input type="date" class="form-control" bind:value={startDate} />
+                </div>
+                <div class="col">
+                    <label for="endDate" class="form-label">Tanggal Akhir</label>
+                    <input type="date" class="form-control" bind:value={endDate} />
+                </div>
+                <div class="col d-flex align-items-end">
+                    <button class="btn btn-primary w-100" onclick={loadReport}>Tampilkan</button>
+                </div>
+            </div>
+
+            <div class="separator my-4"></div>
+
             <h5 class="card-title">Total Keseluruhan</h5>
             <p><strong>Total Cash:</strong> {rupiahFormatter.format(totals.total_cash || 0)}</p>
             <p><strong>Total Kembali:</strong> {rupiahFormatter.format(totals.total_kembali || 0)}</p>

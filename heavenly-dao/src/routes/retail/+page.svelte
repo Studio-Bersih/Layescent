@@ -273,8 +273,8 @@
         return recalculatePrice(cartData);
     }
 </script>
-<Navigation/>
 <div class="container-fluid">
+    <Navigation/>
     <div class="card shadow card-dashed mt-3">
         <div class="card-header">
             <div class="card-title">
