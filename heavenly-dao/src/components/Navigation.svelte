@@ -28,16 +28,16 @@
     ];
 
     const adjustmentBar: Sidebar[] = [
-        { icon: '/icons/outlet/Assets-Adjustment/Pre-Adjustment.svg', name: 'Master Produk', url: '/master', isAdministrator: false },
-        { icon: '/icons/outlet/Assets-Adjustment/Pre-Adjustment.svg', name: 'Set E-Payment', url: '/configuration/e-money', isAdministrator: false },
-        { icon: '/icons/outlet/Assets-Adjustment/Item-Transfer.svg', name: 'Karyawan', url: '/employee', isAdministrator: false },
+        { icon: '/icons/outlet/Assets-Adjustment/Pre-Adjustment.svg', name: 'Master Produk', url: '/master', isAdministrator: true },
+        { icon: '/icons/outlet/Assets-Adjustment/Pre-Adjustment.svg', name: 'Set E-Payment', url: '/configuration/e-money', isAdministrator: true },
+        { icon: '/icons/outlet/Assets-Adjustment/Item-Transfer.svg', name: 'Karyawan', url: '/employee', isAdministrator: true },
     ];
 
     const reportBar: Sidebar[] = [
         { icon: '/icons/outlet/Assets-Transaksi/Retail.svg', name: 'Penjualan Retail', url: '/report/retail', isAdministrator: false },
         { icon: '/icons/outlet/Assets-Report/Pembelian.svg', name: 'Keuntungan E-Money', url: '/report/e-money', isAdministrator: false },
-        { icon: '/icons/outlet/Assets-Report/Rekap-Pesanan.svg', name: 'Omset Bulanan', url: '/report/monthly-retail', isAdministrator: false },
-        { icon: '/icons/outlet/Assets-Report/Buku-Besar.svg', name: 'Laporan CSV', url: '/report/csv', isAdministrator: false },
+        { icon: '/icons/outlet/Assets-Report/Rekap-Pesanan.svg', name: 'Omset Bulanan', url: '/report/monthly-retail', isAdministrator: true },
+        { icon: '/icons/outlet/Assets-Report/Buku-Besar.svg', name: 'Laporan CSV', url: '/report/csv', isAdministrator: true },
     ];
 
     onMount(() => {

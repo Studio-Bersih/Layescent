@@ -46,7 +46,6 @@
     let isLoading: boolean = $state(false);
     let currentIndex: number = $state(0);
 
-
     $effect(() => {
         paidChanges = rupiahFormatter.format(currencySanitizer(paidAmount) - paidTotal);
     })
@@ -72,7 +71,8 @@
     async function initializePage(): Promise <void>{
         const { status, message, data } = await db({
             TOKEN: $useConfiguration.token,
-            USAHA: $useConfiguration.usaha
+            USAHA: $useConfiguration.usaha,
+            CABANG: $useConfiguration.cabang
         }, 'List-Item');
 
         if (status === "error") {

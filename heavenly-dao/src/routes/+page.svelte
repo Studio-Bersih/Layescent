@@ -35,6 +35,8 @@
             $useConfiguration.usaha = data.usaha;
             $useConfiguration.roles = data.roles;
             $useConfiguration.emoney = data.emoney;
+            $useConfiguration.cabang = data.cabang;
+
             localStorage.setItem('token', JSON.stringify(data));
             return goto('/retail');
 

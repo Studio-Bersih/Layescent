@@ -5,6 +5,7 @@ const useConfiguration = writable({
     token: '',
     usaha: '',
     roles: '',
+    cabang: 1,
     emoney: {
         "Transfer Antar Bank & EDC": [
             { rangeStart: 10000, rangeEnd: 50000, fee: 1000 },

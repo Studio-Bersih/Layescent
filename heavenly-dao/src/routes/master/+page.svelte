@@ -51,7 +51,8 @@
     async function initializePage(): Promise <void> {
         const { status, message, data } = await db({
             TOKEN: $useConfiguration.token,
-            USAHA: $useConfiguration.usaha
+            USAHA: $useConfiguration.usaha,
+            CABANG: $useConfiguration.cabang
         }, 'List-Item');
 
         if (status === "error") {

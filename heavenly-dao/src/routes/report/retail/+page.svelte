@@ -47,17 +47,7 @@
         totalTransaksi = newData.reduce( (acc, item) => acc + item.TOTAL_TRANSAKSI, 0) ?? 0;
     }
 
-    function viewModal(id: string) {
-        userContents = id;
-        isModal = true;
-    }
-
-    const closeModal = () => {
-        isModal = false
-    };
-
     async function confirmDelete(id: number): Promise <void>{
-
         toast('Penghapusan Item', {
             description:'Apakah anda yakin?',
             action: {
@@ -101,21 +91,6 @@
 <div class="container">
     <Navigation/>
     <div class="card card-dashed shadow mt-3">
-        <div class="card-header">
-            <div class="card-toolbar">
-                {#if $useConfiguration.roles === "Admin"}
-                    <button type="button" onclick={() => viewModal('report')}  class="btn btn-sm btn-success me-2 mb-1">
-                        <img src="/icons/excel.svg" class="h-20px me-2" alt="SVG Excel" /> Unduh Laporan
-                    </button>
-                    <button type="button" onclick={() => viewModal('users')} class="btn btn-sm btn-warning me-2 mb-1">
-                        <img src="/icons/users.svg" class="h-20px me-2" alt="SVG Excel" /> Pengguna
-                    </button>
-                {/if}
-                <button type="button" onclick={() => viewModal('logOff')} class="btn btn-sm btn-dark me-2 mb-1">
-                    <img src="/icons/power.svg" class="h-20px me-2" alt="SVG Log Off" /> Akhiri Sesi
-                </button>
-            </div>
-        </div>
         <div class="card-body">
             
             <div class="table-responsive">
