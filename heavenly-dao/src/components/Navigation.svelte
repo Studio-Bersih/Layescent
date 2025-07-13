@@ -23,7 +23,7 @@
     let sideBar: Sidebar[] = $state([]);
 
     const transaksiBar: Sidebar[] = [
-        { icon: '/icons/outlet/Assets-Transaksi/Retail.svg', name: 'Penjualan Retail', url: '/retail', isAdministrator: false },
+        { icon: '/icons/outlet/Assets-Transaksi/Retail.svg', name: 'Penjualan Retail', url: '/transaksi/retail', isAdministrator: false },
         { icon: '/icons/outlet/Assets-Transaksi/Pesanan.svg', name: 'E Money', url: '/e-money', isAdministrator: false },
     ];
 
@@ -34,6 +34,8 @@
     ];
 
     const reportBar: Sidebar[] = [
+        { icon: '/icons/outlet/Assets-Transaksi/Retail.svg', name: 'Penjualan Retail', url: '/report/retail', isAdministrator: false },
+        { icon: '/icons/outlet/Assets-Transaksi/Pesanan.svg', name: 'E Money', url: '/e-money', isAdministrator: false },
         { icon: '/icons/outlet/Assets-Report/Rekap-Pesanan.svg', name: 'Omset Bulanan', url: '/report/monthly-retail', isAdministrator: false },
         { icon: '/icons/outlet/Assets-Report/Pembelian.svg', name: 'Keuntungan E-Money', url: '/report/e-money', isAdministrator: false },
         { icon: '/icons/outlet/Assets-Report/Buku-Besar.svg', name: 'Laporan CSV', url: '/report/csv', isAdministrator: false },
@@ -152,8 +154,8 @@
         <div class="my-5"></div>
         
         {#if activeMenu === "Bar"}
-            {@render useBar('Rekap Transaksi', transaksiBar)}
-            {@render useBar('Adjustment', adjustmentBar)}
+            <!-- {@render useBar('Rekap Transaksi', transaksiBar)} -->
+            {@render useBar('Konfigurasi', adjustmentBar)}
             <!-- {@render useBar('Order Kitchen', orderBar)} -->
             <!-- {@render useBar('Production', productionBar)} -->
             <!-- {@render useBar('Akuntansi', akuntansiBar)} -->
