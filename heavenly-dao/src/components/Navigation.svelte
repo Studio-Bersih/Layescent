@@ -31,12 +31,12 @@
         { icon: '/icons/outlet/Assets-Adjustment/Pre-Adjustment.svg', name: 'Master Produk', url: '/master', isAdministrator: false },
         { icon: '/icons/outlet/Assets-Adjustment/Pre-Adjustment.svg', name: 'Set E-Payment', url: '/configuration/e-money', isAdministrator: false },
         { icon: '/icons/outlet/Assets-Adjustment/Item-Transfer.svg', name: 'Karyawan', url: '/employee', isAdministrator: false },
-        { icon: '/icons/outlet/Assets-Adjustment/Item-Keluar.svg', name: 'Item Keluar', url: '/outlet/adjustment/item-keluar', isAdministrator: false },
     ];
 
     const reportBar: Sidebar[] = [
         { icon: '/icons/outlet/Assets-Report/Rekap-Pesanan.svg', name: 'Omset Bulanan', url: '/report/monthly-retail', isAdministrator: false },
         { icon: '/icons/outlet/Assets-Report/Pembelian.svg', name: 'Keuntungan E-Money', url: '/report/e-money', isAdministrator: false },
+        { icon: '/icons/outlet/Assets-Report/Buku-Besar.svg', name: 'Laporan CSV', url: '/report/csv', isAdministrator: false },
     ];
 
     onMount(() => {
