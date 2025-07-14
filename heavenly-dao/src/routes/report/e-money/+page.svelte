@@ -87,7 +87,9 @@
                 <div class="card-body">
                     <h5>Ringkasan</h5>
                     <p>Total Nominal: <strong>{rupiahFormatter.format(totalAmount)}</strong></p>
-                    <p>Total Admin: <strong>{rupiahFormatter.format(totalFee)}</strong></p>
+                    {#if $useConfiguration.roles === "Admin"}
+                        <p>Total Admin: <strong>{rupiahFormatter.format(totalFee)}</strong></p>
+                    {/if}
                 </div>
             </div>
 
@@ -100,7 +102,9 @@
                         <th>Waktu</th>
                         <th>Jenis</th>
                         <th>Nominal</th>
-                        <th>Admin</th>
+                        {#if $useConfiguration.roles === "Admin"}
+                            <th>Admin</th>
+                        {/if}
                         <th>Token</th>
                     </tr>
                 </thead>
@@ -116,14 +120,18 @@
                                 <td>{Carbon(item.CREATED_AT, "date-short-with-time")} WIB</td>
                                 <td>{item.TYPE}</td>
                                 <td>{rupiahFormatter.format(item.AMOUNT)}</td>
-                                <td>{rupiahFormatter.format(item.FEE)}</td>
+                                {#if $useConfiguration.roles === "Admin"}
+                                    <td>{rupiahFormatter.format(item.FEE)}</td>
+                                {/if}
                                 <td>{item.TOKEN}</td>
                             </tr>
                         {/each}
                         <tr>
                             <td colspan="3" class="text-end"></td>
                             <td class=""><strong>{rupiahFormatter.format(totalAmount)}</strong></td>
-                            <td class=""><strong>{rupiahFormatter.format(totalFee)}</strong></td>
+                            {#if $useConfiguration.roles === "Admin"}
+                                <td class=""><strong>{rupiahFormatter.format(totalFee)}</strong></td>
+                            {/if}
                             <td></td>
                         </tr>
                     {/if}

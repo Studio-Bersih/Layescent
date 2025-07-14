@@ -163,9 +163,9 @@
 		});
     }
 </script>
-<Navigation/>
 <div class="container my-5">
-    <div class="row">
+	<Navigation/>
+    <div class="row my-7">
         <!-- Add New Type -->
         <div class="col-md-6">
             <div class="card mb-4">

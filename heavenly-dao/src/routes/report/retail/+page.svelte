@@ -20,16 +20,17 @@
         WAKTU_TRANSAKSI: string;
     }
 
-    let isModal: boolean = $state(false);
     let isLoading: boolean = $state(false);
-
-    let userContents: string = $state('report');
 
     let newData: HistoryPenjualan[] = $state([]);
 
     let setDelete: number | null = $state(null);
 
     let totalTransaksi: number = $state(0);
+
+    let totalTarikTunai: number = $state(0);
+    let totalTransfer: number = $state(0);
+    let totalAdmin: number = $state(0);
 
     onMount(async () => initializePage());
 
@@ -43,7 +44,12 @@
             return;
         }
 
-        newData = data;
+        newData = data.items;
+
+        totalTarikTunai = Number(data.decrease_total) ?? 0;
+        totalTransfer = Number(data.increase_total) ?? 0;
+        totalAdmin = Number(data.fee_total) ?? 0;
+
         totalTransaksi = newData.reduce( (acc, item) => acc + item.TOTAL_TRANSAKSI, 0) ?? 0;
     }
 
@@ -142,8 +148,28 @@
                                 </tr>
                             {/each}
                             <tr>
-                                <td colspan="6" class="text-center fw-bolder bg-light-success">Total Transaksi</td>
+                                <td colspan="6" class="text-end fw-bolder">Total Transaksi</td>
                                 <td class="text-center">{rupiahFormatter.format(totalTransaksi)}</td>
+                            </tr>
+                            <tr>
+                                <td colspan="6" class="text-end fw-bolder">Total Tarik Tunai</td>
+                                <td class="text-center">- {rupiahFormatter.format(totalTarikTunai)}</td>
+                            </tr>
+                            <tr>
+                                <td colspan="6" class="text-end fw-bolder">Total Transfer</td>
+                                <td class="text-center">{rupiahFormatter.format(totalTransfer)}</td>
+                            </tr>
+                            <tr>
+                                <td colspan="6" class="text-end fw-bolder">Total Admin</td>
+                                <td class="text-center">{rupiahFormatter.format(totalAdmin)}</td>
+                            </tr>
+                            <tr>
+                                <td colspan="6" class="text-end fw-bolder text-golden">Total Bersih (Tanpa Admin)</td>
+                                <td class="text-center">{rupiahFormatter.format(totalTransaksi + (totalTransfer - totalTarikTunai))}</td>
+                            </tr>
+                            <tr>
+                                <td colspan="6" class="text-end fw-bolder text-success">Total Bersih (Dengan Admin)</td>
+                                <td class="text-center">{rupiahFormatter.format(totalTransaksi + (totalTransfer - totalTarikTunai + totalAdmin))}</td>
                             </tr>
                         {/if}
                     </tbody>

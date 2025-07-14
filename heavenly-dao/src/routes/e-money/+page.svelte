@@ -80,37 +80,46 @@
     }
 
     async function doPost(): Promise<void> {
-        if (!selectedType || !transactionAmount) {
-            toast.error(useNotice.general.invalidField);
-            return;
-        }
+        toast('Pencatatan Transaksi', {
+            description: 'Pastikan data yang dimasukkan sudah benar.',
+            action: {
+            label: useNotice.toast.areYouSure,
+                onClick: async () => {
+                    if (!selectedType || !transactionAmount) {
+                        toast.error(useNotice.general.invalidField);
+                        return;
+                    }
 
-        const sanitizedAmount = currencySanitizer(transactionAmount);
-        const useFee = calculateFee(selectedType, transactionAmount);
-        
-        const { status, message } = await db({
-            TYPE: selectedType,
-            AMOUNT: sanitizedAmount,
-            FEE: useFee,
-            TOKEN: $useConfiguration.token,
-            USAHA: $useConfiguration.usaha
-        }, 'E-Money/Insert')
+                    const sanitizedAmount = currencySanitizer(transactionAmount);
+                    const useFee = calculateFee(selectedType, transactionAmount);
+                    
+                    const { status, message } = await db({
+                        TYPE: selectedType,
+                        AMOUNT: sanitizedAmount,
+                        FEE: useFee,
+                        TOKEN: $useConfiguration.token,
+                        USAHA: $useConfiguration.usaha
+                    }, 'E-Money/Insert')
 
-        if (status === "error") {
-            toast.error(message);
-            return;
-        }
+                    if (status === "error") {
+                        toast.error(message);
+                        return;
+                    }
 
-        transactions = [...transactions, {
-            type: selectedType,
-            amount: sanitizedAmount,
-            fee: useFee,
-            timestamp: new Date().toLocaleString()
-        }];
+                    transactions = [...transactions, {
+                        type: selectedType,
+                        amount: sanitizedAmount,
+                        fee: useFee,
+                        timestamp: new Date().toLocaleString()
+                    }];
 
-        selectedType = '';
-        transactionAmount = '';
-        toast.success(message);
+                    selectedType = '';
+                    transactionAmount = '';
+                    toast.success(message);
+                }
+            },
+        })
+
     }
 </script>
 <div class="container">
