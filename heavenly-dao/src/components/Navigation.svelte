@@ -29,8 +29,9 @@
 
     const adjustmentBar: Sidebar[] = [
         { icon: '/icons/outlet/Assets-Adjustment/Pre-Adjustment.svg', name: 'Master Produk', url: '/master', isAdministrator: true },
-        { icon: '/icons/outlet/Assets-Adjustment/Pre-Adjustment.svg', name: 'Set E-Payment', url: '/configuration/e-money', isAdministrator: true },
-        { icon: '/icons/outlet/Assets-Adjustment/Item-Transfer.svg', name: 'Karyawan', url: '/employee', isAdministrator: true },
+        { icon: '/icons/outlet/Assets-Adjustment/Adjustment.svg', name: 'Set E-Payment', url: '/configuration/e-money', isAdministrator: true },
+        { icon: '/icons/outlet/Assets-Transaksi/Pembelian.svg', name: 'Karyawan', url: '/employee', isAdministrator: true },
+         { icon: '/icons/outlet/Assets-Adjustment/Item-Transfer.svg', name: 'Item Transfer', url: '/item-transfer', isAdministrator: false },
     ];
 
     const reportBar: Sidebar[] = [
