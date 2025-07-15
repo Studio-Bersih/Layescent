@@ -133,21 +133,23 @@
                 <div class="col">
                     <span class="h4 text-gray-800">Riwayat Penjualan</span>
                 </div>
-                <div class="col">
-                    <div class="row">
-                        <div class="col-8">
-                            <select id="chooseStaff" class="form-select form-select-sm" bind:value={selectedStaff}>
-                                <option value="" selected disabled>Pilih Staff Kasir</option>"
-                                {#each allStaff as staff}
-                                    <option value={staff.TOKEN}>{staff.TOKEN} ({staff.ROLE})</option>
-                                {/each}
-                            </select>
-                        </div>
-                        <div class="col-4">
-                            <button type="button" class="btn btn-sm btn-primary" onclick={getReports}>Cari</button>
+                {#if $useConfiguration.roles === "Admin"}
+                    <div class="col">
+                        <div class="row">
+                            <div class="col-8">
+                                <select id="chooseStaff" class="form-select form-select-sm" bind:value={selectedStaff}>
+                                    <option value="" selected disabled>Pilih Staff Kasir</option>"
+                                    {#each allStaff as staff}
+                                        <option value={staff.TOKEN}>{staff.TOKEN} ({staff.ROLE})</option>
+                                    {/each}
+                                </select>
+                            </div>
+                            <div class="col-4">
+                                <button type="button" class="btn btn-sm btn-primary" onclick={getReports}>Cari</button>
+                            </div>
                         </div>
                     </div>
-                </div>
+                {/if}
             </div>
 
             <div class="separator my-7"></div>
@@ -210,17 +212,19 @@
                                 <td colspan="6" class="text-end fw-bolder">Total Transfer</td>
                                 <td class="text-center">{rupiahFormatter.format(totalTransfer)}</td>
                             </tr>
-                            <tr>
-                                <td colspan="6" class="text-end fw-bolder">Total Admin</td>
-                                <td class="text-center">{rupiahFormatter.format(totalAdmin)}</td>
-                            </tr>
+                            {#if $useConfiguration.roles === "Admin"}
+                                <tr>
+                                    <td colspan="6" class="text-end fw-bolder">Total Admin</td>
+                                    <td class="text-center">{rupiahFormatter.format(totalAdmin)}</td>
+                                </tr>
+                                <tr>
+                                    <td colspan="6" class="text-end fw-bolder text-success">Total Kas (Dengan Admin)</td>
+                                    <td class="text-center">{rupiahFormatter.format(totalTransaksi + (totalTransfer - totalTarikTunai + totalAdmin))}</td>
+                                </tr>
+                            {/if}
                             <tr>
                                 <td colspan="6" class="text-end fw-bolder text-golden">Total Kas (Tanpa Admin)</td>
                                 <td class="text-center">{rupiahFormatter.format(totalTransaksi + (totalTransfer - totalTarikTunai))}</td>
-                            </tr>
-                            <tr>
-                                <td colspan="6" class="text-end fw-bolder text-success">Total Kas (Dengan Admin)</td>
-                                <td class="text-center">{rupiahFormatter.format(totalTransaksi + (totalTransfer - totalTarikTunai + totalAdmin))}</td>
                             </tr>
                         {/if}
                     </tbody>
