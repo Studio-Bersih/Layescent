@@ -1,16 +1,18 @@
 <script lang="ts">
-	import { db } from '$lib/utils/db';
-	import { goto } from '$app/navigation';
-    import toast, { Toaster } from 'svelte-french-toast';
-    
-    let token: string = '';
+	import { toast } from "svelte-sonner";
+	import { db } from "../library/hooks/db";
+	import { useNotice } from "../library/validator/useNotice";
+	import { goto } from "$app/navigation";
+	import { useConfiguration } from "../config/useConfiguration";
+
+    let token: string = $state('');
     let year: number = new Date().getFullYear();
 
-    let isLoading: boolean = false;
+    let isLoading: boolean = $state(false);
 
     async function login(): Promise <void> {
         if(token === ''){
-            toast.error("Harap masukkan token!");
+            toast.error(useNotice.general.missingField);
             return;
         }
 
@@ -19,7 +21,7 @@
         try {
             const { status, message, data } = await db({
                 token: token
-            },'Check-Token');
+            }, 'Check-Token');
 
             isLoading = false;
 
@@ -29,8 +31,14 @@
                 return;
             }
 
-            localStorage.setItem('once', JSON.stringify(data));
-            return goto('/penjualan');
+            $useConfiguration.token = data.token;
+            $useConfiguration.usaha = data.usaha;
+            $useConfiguration.roles = data.roles;
+            $useConfiguration.emoney = data.emoney;
+            $useConfiguration.cabang = data.cabang;
+
+            localStorage.setItem('token', JSON.stringify(data));
+            return goto('/retail');
 
         } catch (error) {
             isLoading = false;
@@ -38,12 +46,11 @@
         }
     }
 </script>
-<Toaster/>
 <div class="log-centered">
     <div class="card shadow">
         <div class="card-header">
             <div class="card-title">
-                <a href="https://wa.me/6285790801918" target="_blank" class="btn btn-sm btn-success">
+                <a href="https://wa.me/628984170335" target="_blank" class="btn btn-sm btn-success">
                     <img src="/icons/key.svg" class="h-20px me-1" alt=""/>
                     Lupa Token?
                 </a>
@@ -54,7 +61,7 @@
         </div>
         <div class="card-body">
 
-            <form on:submit|preventDefault={login} class="row">
+            <form onsubmit={login} class="row">
                 <div class="col-1">
                     <img src="/icons/person.svg" class="h-40px mt-9" alt="SVG Login" />
                 </div>
@@ -81,3 +88,13 @@
         </div>
     </div>
 </div>
+
+<style>
+    .log-centered {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        min-width: 600px;
+    }
+</style>
