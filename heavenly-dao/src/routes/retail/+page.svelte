@@ -184,6 +184,7 @@
         isLoading = true;
 
         const { status, message } = await db({
+            cabangAsal: Number($useConfiguration.cabang),
             cart : cartData,
             cash: currencySanitizer(paidAmount),
             totalTransaksi : paidTotal,

@@ -20,6 +20,14 @@
         WAKTU_TRANSAKSI: string;
     }
 
+    interface Users { 
+        ID: number; 
+        TOKEN: string; 
+        ROLE: "Admin" | "User";
+        CABANG: number;
+        USAHA: string;
+    }
+
     let isLoading: boolean = $state(false);
 
     let newData: HistoryPenjualan[] = $state([]);
@@ -32,11 +40,17 @@
     let totalTransfer: number = $state(0);
     let totalAdmin: number = $state(0);
 
-    onMount(async () => initializePage());
+    let allStaff: Users[] = $state([]);
+    let selectedStaff: string = $state($useConfiguration.token);
 
-    async function initializePage(): Promise <void> {
+    onMount(async () => {
+        getReports();
+        getStaff();
+    });
+
+    async function getReports(): Promise <void> {
         const { status, message, data } = await db({
-            staff : $useConfiguration.token,
+            staff : selectedStaff,
         }, 'Riwayat-Penjualan')
 
         if (status === "error") {
@@ -51,6 +65,20 @@
         totalAdmin = Number(data.fee_total) ?? 0;
 
         totalTransaksi = newData.reduce( (acc, item) => acc + item.TOTAL_TRANSAKSI, 0) ?? 0;
+    }
+
+    
+    async function getStaff(): Promise <void> {
+        const { status, message, data } = await db({
+            usaha: $useConfiguration.usaha
+        }, 'Users');
+
+        if (status === "error") {
+            toast.error(message);
+            return;
+        }
+
+        allStaff = data;
     }
 
     async function confirmDelete(id: number): Promise <void>{
@@ -100,6 +128,29 @@
     <Navigation/>
     <div class="card card-dashed shadow mt-3">
         <div class="card-body">
+
+            <div class="row mb-3">
+                <div class="col">
+                    <span class="h4 text-gray-800">Riwayat Penjualan</span>
+                </div>
+                <div class="col">
+                    <div class="row">
+                        <div class="col-8">
+                            <select id="chooseStaff" class="form-select form-select-sm" bind:value={selectedStaff}>
+                                <option value="" selected disabled>Pilih Staff Kasir</option>"
+                                {#each allStaff as staff}
+                                    <option value={staff.TOKEN}>{staff.TOKEN} ({staff.ROLE})</option>
+                                {/each}
+                            </select>
+                        </div>
+                        <div class="col-4">
+                            <button type="button" class="btn btn-sm btn-primary" onclick={getReports}>Cari</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="separator my-7"></div>
             
             <div class="table-responsive">
                 <table class="table align-middle table-hover gx-1 gy-1">
@@ -164,11 +215,11 @@
                                 <td class="text-center">{rupiahFormatter.format(totalAdmin)}</td>
                             </tr>
                             <tr>
-                                <td colspan="6" class="text-end fw-bolder text-golden">Total Bersih (Tanpa Admin)</td>
+                                <td colspan="6" class="text-end fw-bolder text-golden">Total Kas (Tanpa Admin)</td>
                                 <td class="text-center">{rupiahFormatter.format(totalTransaksi + (totalTransfer - totalTarikTunai))}</td>
                             </tr>
                             <tr>
-                                <td colspan="6" class="text-end fw-bolder text-success">Total Bersih (Dengan Admin)</td>
+                                <td colspan="6" class="text-end fw-bolder text-success">Total Kas (Dengan Admin)</td>
                                 <td class="text-center">{rupiahFormatter.format(totalTransaksi + (totalTransfer - totalTarikTunai + totalAdmin))}</td>
                             </tr>
                         {/if}

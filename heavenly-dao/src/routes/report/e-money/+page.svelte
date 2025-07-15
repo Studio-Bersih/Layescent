@@ -28,8 +28,6 @@
     let totalAmount = $state(0);
     let totalFee = $state(0);
 
-    onMount(() => initializePage());
-
     async function initializePage(): Promise<void> {
         const { status, message, data } = await db({
             start_date: startDate,
@@ -42,6 +40,7 @@
             return;
         }
 
+        toast.success(message);
         reports = data;
         recalculateTotals();
     }
