@@ -196,15 +196,15 @@
                     </div>
                     <div class="mb-3">
                         <label for="rangeAwal" class="form-label">Range Awal</label>
-						<Rupiah id="startRange" bind:value={rangeStart} useClass="form-control"/>
+						<Rupiah id="startRange" bind:value={rangeStart} useClass="form-control" disabled={false}/>
                     </div>
                     <div class="mb-3">
                         <label for="rangeAkhir" class="form-label">Range Akhir</label>
-						<Rupiah id="endRange" bind:value={rangeEnd} useClass="form-control"/>
+						<Rupiah id="endRange" bind:value={rangeEnd} useClass="form-control" disabled={false}/>
                     </div>
                     <div class="mb-3">
                         <label for="biaya" class="form-label">Biaya</label>
-						<Rupiah id="fees" bind:value={fee} useClass="form-control"/>
+						<Rupiah id="fees" bind:value={fee} useClass="form-control" disabled={false}/>
                     </div>
                     <button onclick={addRange} class="btn btn-success">Tambah Range</button>
                 </div>

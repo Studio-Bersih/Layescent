@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { onMount } from "svelte";
+	import { onMount, tick } from "svelte";
 	import { toast } from "svelte-sonner";
 	import { db } from "../../library/hooks/db";
 	import { useNotice } from "../../library/validator/useNotice";
@@ -111,7 +111,8 @@
         }
     }
 
-    function addToCart() {
+    function addToCart(event: Event) {
+        event.preventDefault();
         if(masterProduk.length === 1){
             const item: Master = masterProduk[0];
 
@@ -206,9 +207,10 @@
         toast.error(message);
     }
 
-    function startFocus(){
+    async function startFocus(){
         searchBar = '';
-        searchByNameController.focus();
+        await tick();
+        searchByNameController.focus(); // It can't even focus on the input element
     }
 
     function removeAll(){
@@ -232,6 +234,8 @@
         key = event.key;
         if (key == 'Escape'){
             startFocus();
+        } else if (key == '`') {
+            document.getElementById('viewPayment')?.focus();
         } else if (event.ctrlKey && event.key == 'Enter') {
             if(!isLoading) {
                 doPost();
@@ -351,7 +355,7 @@
                         <div class="col">
                             <label for="viewKembalian" class="form-label fw-bold">Kembalian</label>
                             <!-- <Changes bind:value={paidChanges}/> -->
-                            <Rupiah bind:value={paidChanges} useClass="form-control form-control-sm" id="viewKembalian" />
+                            <Rupiah bind:value={paidChanges} useClass="form-control form-control-sm" id="viewKembalian" disabled={true}/>
                         </div>
                     </div>
 
@@ -416,4 +420,4 @@
     </div>
 </div>
 
-<svelte:window on:keydown={startPaid} />
+<svelte:window onkeydown={startPaid} />

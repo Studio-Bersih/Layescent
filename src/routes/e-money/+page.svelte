@@ -145,7 +145,7 @@
                 </div>
                 <div class="form-group my-3">
                     <label for="payment" class="form-label fw-bold">Jumlah Transaksi</label>
-                    <Rupiah id="payment" bind:value={transactionAmount} useClass="form-control mt-2" />
+                    <Rupiah id="payment" bind:value={transactionAmount} useClass="form-control mt-2"  disabled={false}/>
                 </div>
                 <button type="submit" class="btn btn-primary mt-3">Simpan Pembayaran</button>
             </form>

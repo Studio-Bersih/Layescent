@@ -429,13 +429,13 @@
             <div class="col">
                 <div class="form-group">
                     <label for="hargaStok" class="form-label fw-bold">Harga Stok</label>
-                    <Rupiah id="hargaStok" useClass="form-control form-control-sm" bind:value={hargaStok}/>
+                    <Rupiah id="hargaStok" useClass="form-control form-control-sm" bind:value={hargaStok} disabled={false}/>
                 </div>
             </div>
             <div class="col">
                 <div class="form-group">
                     <label for="hargaJual" class="form-label fw-bold">Harga Jual</label>
-                    <Rupiah id="hargaJual" useClass="form-control form-control-sm" bind:value={hargaJual}/>
+                    <Rupiah id="hargaJual" useClass="form-control form-control-sm" bind:value={hargaJual} disabled={false}/>
                 </div>
             </div>
         </div>
@@ -502,11 +502,11 @@
             </div>
             <div class="form-group">
                 <label for="hargaStokUpdate" class="form-label fw-bold">Harga Stok</label>
-                <Rupiah id="hargaStokUpdate" useClass="form-control form-control-sm" bind:value={hargaStok}/>
+                <Rupiah id="hargaStokUpdate" useClass="form-control form-control-sm" bind:value={hargaStok} disabled={false}/>
             </div>
             <div class="form-group my-2">
                 <label for="hargaJualUpdate" class="form-label fw-bold">Harga Jual</label>
-                <Rupiah id="hargaJualUpdate" useClass="form-control form-control-sm" bind:value={hargaJual}/>
+                <Rupiah id="hargaJualUpdate" useClass="form-control form-control-sm" bind:value={hargaJual} disabled={false}/>
             </div>
             <div class="form-group">
                 <label for="keterangan" class="form-label fw-bold">Keterangan</label>

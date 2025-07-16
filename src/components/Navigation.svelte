@@ -39,7 +39,7 @@
         { icon: '/icons/outlet/Assets-Report/Pembelian.svg', name: 'Keuntungan E-Money', url: '/report/e-money', isAdministrator: false },
         { icon: '/icons/outlet/Assets-Report/Rekap-Pesanan.svg', name: 'Omset Bulanan', url: '/report/monthly-retail', isAdministrator: true },
         { icon: '/icons/outlet/Assets-Report/Buku-Besar.svg', name: 'Laporan CSV', url: '/report/csv', isAdministrator: true },
-        { icon: '/icons/outlet/Assets-Report/CSV/Item-Keluar.svg', name: 'Riwayat', url: '/report/logs', isAdministrator: false },
+        { icon: '/icons/outlet/Assets-Report/CSV/Item-Keluar.svg', name: 'Riwayat', url: '/report/logs', isAdministrator: true },
     ];
 
     onMount(() => {
