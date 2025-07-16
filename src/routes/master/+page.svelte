@@ -41,7 +41,6 @@
 
     let isModal: boolean = $state(false);
     let isLoading: boolean = $state(false);
-    let isHidden: boolean = $state(false);
 
     let currentPage: string | "delete" | "update" = $state('');
 
@@ -204,6 +203,7 @@
                         return;
                     }
                     
+                    isModal = false;
                     toast.success(message);
                 }
             },
@@ -233,6 +233,7 @@
                     }
 
                     initializePage();
+                    isModal = false;
                     toast.success(message);
                 }
             },
