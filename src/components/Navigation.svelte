@@ -120,23 +120,32 @@
 </nav>
 
 {#snippet oldNavigation()}
-    <a href="/retail" class="btn btn-sm btn-primary me-1 mb-1">
-        <img src="/icons/cart.svg" class="h-20px me-2" alt="SVG Penjualan" /> Penjualan
-    </a>
-    <a href="/report/retail" class="btn btn-sm btn-info me-1 mb-1">
-        <img src="/icons/history.svg" class="h-20px me-2" alt="SVG History" /> Riwayat
-    </a>
-    {#if $useConfiguration.roles === "Admin"}
-        <a href="/master" class="btn btn-sm btn-danger me-1 mb-1">
-            <img src="/icons/box.svg" class="h-20px me-2" alt="SVG Master Produk" /> Master Produk
+    <div class="row">
+        <div class="col-11">
+        <a href="/retail" class="btn btn-sm btn-primary me-1 mb-1">
+            <img src="/icons/cart.svg" class="h-20px me-2" alt="SVG Penjualan" /> Penjualan
         </a>
-        <a href="/report/csv" class="btn btn-sm btn-success me-2 mb-1">
-            <img src="/icons/excel.svg" class="h-20px me-2" alt="SVG Excel" /> Unduh Laporan
+        <a href="/report/retail" class="btn btn-sm btn-info me-1 mb-1">
+            <img src="/icons/history.svg" class="h-20px me-2" alt="SVG History" /> Riwayat
         </a>
-        <a href="/employee" class="btn btn-sm btn-warning me-2 mb-1">
-            <img src="/icons/users.svg" class="h-20px me-2" alt="SVG Excel" /> Pengguna
-        </a>
-    {/if}
+        {#if $useConfiguration.roles === "Admin"}
+            <a href="/master" class="btn btn-sm btn-danger me-1 mb-1">
+                <img src="/icons/box.svg" class="h-20px me-2" alt="SVG Master Produk" /> Master Produk
+            </a>
+            <a href="/report/csv" class="btn btn-sm btn-success me-2 mb-1">
+                <img src="/icons/excel.svg" class="h-20px me-2" alt="SVG Excel" /> Unduh Laporan
+            </a>
+            <a href="/employee" class="btn btn-sm btn-warning me-2 mb-1">
+                <img src="/icons/users.svg" class="h-20px me-2" alt="SVG Excel" /> Pengguna
+            </a>
+        {/if}
+        </div>
+        <div class="col-1 text-end">
+            <button type="button" onclick={logOut} class="btn btn-sm btn-icon btn-danger">
+                <img src="/icons/power.svg" class="h-25px" alt="Power off"/>
+            </button>
+        </div>
+    </div>
 {/snippet}
 
 {#snippet newNavigation()}

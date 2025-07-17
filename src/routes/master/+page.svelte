@@ -134,7 +134,7 @@
             action: {
                 label: useNotice.toast.areYouSure,
                 onClick: async () => {
-                    if (empty(currencySanitizer(hargaStok)) || empty(currencySanitizer(hargaJual))) {
+                    if (hargaStok == '' || hargaJual == '') {
                         toast.error('Harap mengisi harga stok dan harga jual!');
                         return;
                     }
