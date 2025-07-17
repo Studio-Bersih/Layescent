@@ -97,7 +97,7 @@
         }
     }
 
-    async function viewModal(id: number, type: "delete" | "update") {
+    async function viewModal(id: number, type: "delete" | "update"): Promise <void> {
         if(type === "delete") {
             setDelete = id;
             currentPage = "delete";
