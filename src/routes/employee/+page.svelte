@@ -33,42 +33,46 @@
     }
 
     async function changeToken(id: number, token: string, cabang: number, usaha: string): Promise <void> {
+        if ($useConfiguration.usaha === "Nick Cell") {
+            doPost(id, token, cabang, usaha);
+            return;
+        }
+
         toast('Pengubahan Token!', {
             description: 'Apakah anda yakin?',
             action: {
                 label: useNotice.toast.areYouSure,
                 onClick: async () => {
-                    try {
-                        if(token == '') {
-                            toast.error("Token tidak boleh kosong")
-                            return;
-                        }
-
-                        if (cabang == 0) {
-                            toast.error("Cabang tidak boleh kosong");
-                            return;
-                        }
-
-                        const { status, message } = await db({
-                            id: id,
-                            token : token,
-                            cabang: cabang,
-                            usaha: usaha
-                        }, 'Update-Users');
-
-                        if (status === 'error') {
-                            toast.error(message);
-                            return;
-                        }
-                        
-                        toast.success(message);
-                    } catch (error) {
-                        toast.error(useNotice.connection.default);
-                        console.error(error);
-                    }
+                    doPost(id, token, cabang, usaha);
                 }
             },
         });
+    }
+
+    async function doPost(id: number, token: string, cabang: number, usaha: string): Promise <void> {
+        try {
+            if(token == '') {
+                toast.error("Token tidak boleh kosong")
+                return;
+            }
+
+            const { status, message } = await db({
+                id: id,
+                token : token,
+                cabang: cabang,
+                usaha: usaha
+            }, 'Update-Users');
+
+            if (status === 'error') {
+                toast.error(message);
+                return;
+            }
+
+            toast.success(message);
+        } catch (error) {
+            toast.error(useNotice.connection.default);
+            console.error(error);
+        }
     }
 </script>
 <div class="container">
@@ -82,6 +86,9 @@
                             <th>#</th>
                             <th>Token</th>
                             <th>Role</th>
+                            {#if $useConfiguration.usaha != "Nick Cell"}
+                                <th>Usaha</th>
+                            {/if}
                             <th>Cabang</th>
                             <th>Action</th>
                         </tr>
@@ -94,14 +101,16 @@
                                     <input type="text" bind:value={newData.TOKEN} class="form-control form-control-sm" placeholder="Token User" />
                                 </td>
                                 <td>{newData.ROLE}</td>
-                                <td>
-                                    <select bind:value={newData.CABANG} class="form-select form-select-sm">
-                                        <option value="0">Pilih Cabang</option>
-                                        <option value="1">Cabang 1</option>
-                                        <option value="2">Cabang 2</option>
-                                        <option value="3">Cabang 3</option>
-                                    </select>
-                                </td>
+                                {#if $useConfiguration.usaha != "Nick Cell"}
+                                    <td>
+                                        <select bind:value={newData.CABANG} class="form-select form-select-sm">
+                                            <option value="0">Pilih Cabang</option>
+                                            <option value="1">Cabang 1</option>
+                                            <option value="2">Cabang 2</option>
+                                            <option value="3">Cabang 3</option>
+                                        </select>
+                                    </td>
+                                {/if}
                                 <td>
                                     <button type="button" onclick={() => changeToken(newData.ID, newData.TOKEN, newData.CABANG, newData.USAHA)} class="btn btn-sm btn-primary">Update</button>
                                 </td>

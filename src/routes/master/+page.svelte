@@ -129,115 +129,90 @@
     }
 
     async function createItem(): Promise <void> {
-        toast('Item Baru', {
-            description: 'Apakah anda yakin?',
-            action: {
-                label: useNotice.toast.areYouSure,
-                onClick: async () => {
-                    if (hargaStok == '' || hargaJual == '') {
-                        toast.error('Harap mengisi harga stok dan harga jual!');
-                        return;
-                    }
+        if (hargaStok == '' || hargaJual == '') {
+            toast.error('Harap mengisi harga stok dan harga jual!');
+            return;
+        }
 
-                    isLoading = true;
+        isLoading = true;
 
-                    const { status, message } = await db({
-                        name: name,
-                        jenis : jenis,
-                        barcode: barcode,
-                        hargaStok: currencySanitizer(hargaStok),
-                        hargaJual: currencySanitizer(hargaJual),
-                        keterangan: keterangan,
-                        stok : stokItem ?? 1,
-                        usaha: $useConfiguration.usaha
-                    }, 'Create-Item');
+        const { status, message } = await db({
+            name: name,
+            jenis : jenis,
+            barcode: barcode,
+            hargaStok: currencySanitizer(hargaStok),
+            hargaJual: currencySanitizer(hargaJual),
+            keterangan: keterangan,
+            stok : stokItem ?? 1,
+            usaha: $useConfiguration.usaha
+        }, 'Create-Item');
 
-                    isLoading = false;
+        isLoading = false;
 
-                    if (status === 'error') {
-                        toast.error(message);
-                        return;
-                    }
+        if (status === 'error') {
+            toast.error(message);
+            return;
+        }
 
-                    toast.success(message);
-                    newData.push({
-                        id: -1,
-                        name : name,
-                        jenis : jenis,
-                        barcode: barcode,
-                        hargaStok : currencySanitizer(hargaStok),
-                        hargaJual : currencySanitizer(hargaJual),
-                        keterangan : keterangan,
-                        stokItem: stokItem ?? 0,
-                        stokItemSecond: stokItemSecond ?? 0,
-                        stokItemThird: stokItemThird ?? 0
-                    });
-                    newData = newData;
-                    removeAll();
-                }
-            },
+        toast.success(message);
+        newData.push({
+            id: -1,
+            name : name,
+            jenis : jenis,
+            barcode: barcode,
+            hargaStok : currencySanitizer(hargaStok),
+            hargaJual : currencySanitizer(hargaJual),
+            keterangan : keterangan,
+            stokItem: stokItem ?? 0,
+            stokItemSecond: stokItemSecond ?? 0,
+            stokItemThird: stokItemThird ?? 0
         });
-
+        newData = newData;
+        removeAll();
     }
 
     async function updateStock(id: number, stock: number, secondStock: number, thirdStock: number): Promise <void> {
-        toast('Update Stok', {
-            description: 'Apakah anda yakin?',
-            action: {
-                label: useNotice.toast.areYouSure,
-                onClick: async () => {
-                    if (stock < 1) {
-                        toast.error("Stok cabang 1 tidak boleh dibawah 0!");
-                        return;
-                    }
+        if (stock < 1) {
+            toast.error("Stok tidak boleh dibawah 0!");
+            return;
+        }
 
-                    const { status , message } = await db({
-                        id : id,
-                        stock : stock,
-                        secondStock: secondStock,
-                        thirdStock: thirdStock
-                    }, 'Update-Stock');
+        const { status , message } = await db({
+            id : id,
+            stock : stock,
+            secondStock: secondStock,
+            thirdStock: thirdStock
+        }, 'Update-Stock');
 
-                    if (status === 'error') {
-                        toast.error(message);
-                        return;
-                    }
-                    
-                    isModal = false;
-                    toast.success(message);
-                }
-            },
-        });
+        if (status === 'error') {
+            toast.error(message);
+            return;
+        }
+        
+        isModal = false;
+        toast.success(message);
     }
 
     async function updateItem(): Promise <void> {
-        toast('Update Item', {
-            description: 'Apakah anda yakin?',
-            action: {
-                label: useNotice.toast.areYouSure,
-                onClick: async () => {
-                    const { status , message } = await db({
-                        id : setUpdate,
-                        name: name,
-                        jenis : jenis,
-                        barcode: barcode,
-                        hargaStok: currencySanitizer(hargaStok),
-                        hargaJual: currencySanitizer(hargaJual),
-                        keterangan: keterangan,
-                        stok : stokItem ?? 1
-                    }, 'Update-Item');
+        const { status , message } = await db({
+            id : setUpdate,
+            name: name,
+            jenis : jenis,
+            barcode: barcode,
+            hargaStok: currencySanitizer(hargaStok),
+            hargaJual: currencySanitizer(hargaJual),
+            keterangan: keterangan,
+            stok : stokItem ?? 1
+        }, 'Update-Item');
 
-                    if (status === 'error') {
-                        toast.error(message,);
-                        return;
-                    }
+        if (status === 'error') {
+            toast.error(message,);
+            return;
+        }
 
-                    initializePage();
-                    isModal = false;
-                    toast.success(message);
-                }
-            },
-        });
+        initializePage();
+        isModal = false;
+        toast.success(message);
     }
 
     async function deleteItem(): Promise <void> {
