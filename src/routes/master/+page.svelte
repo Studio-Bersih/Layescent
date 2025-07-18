@@ -256,7 +256,7 @@
         });
     }
 
-    function removeAll() {
+    function removeAll(): void {
         name = '';
         jenis = '';
         barcode = '';
