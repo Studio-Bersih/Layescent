@@ -8,6 +8,7 @@
 
     import Rupiah from "../../components/shared/Rupiah.svelte";
 	import Navigation from "../../components/Navigation.svelte";
+	import { loadToken } from "../../library/validator/useAuth";
 
     interface Master { 
         id: number;
@@ -69,6 +70,7 @@
     });
 
     async function initializePage(): Promise <void>{
+        loadToken();
         const { status, message, data } = await db({
             TOKEN: $useConfiguration.token,
             USAHA: $useConfiguration.usaha,

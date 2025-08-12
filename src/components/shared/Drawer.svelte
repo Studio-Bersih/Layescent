@@ -1,5 +1,6 @@
 <script lang="ts">
     import { onMount, onDestroy } from 'svelte';
+    import { browser } from '$app/environment'; // <--- SvelteKit helper
 
     export let isOpen: boolean = false;
     export let position: 'left' | 'right' | 'top' | 'bottom' = 'left';
@@ -23,24 +24,29 @@
     };
 
     const lockScroll = () => {
-        document.body.style.overflow = 'hidden';
+        if (browser) document.body.style.overflow = 'hidden';
     };
 
     const unlockScroll = () => {
-        document.body.style.overflow = '';
+        if (browser) document.body.style.overflow = '';
     };
 
     onMount(() => {
         updateStyles();
-        document.addEventListener('mousedown', handleClickOutside);
+
+        if (browser) {
+            document.addEventListener('mousedown', handleClickOutside);
+        }
     });
 
     onDestroy(() => {
-        document.removeEventListener('mousedown', handleClickOutside);
+        if (browser) {
+            document.removeEventListener('mousedown', handleClickOutside);
+        }
         unlockScroll();
     });
 
-    $: {
+    $: if (browser) {
         if (isOpen) {
             lockScroll();
             lastActiveElement = document.activeElement as HTMLElement;
@@ -55,13 +61,15 @@
     }
 
     async function handleKeyNavigation(event: KeyboardEvent) {
-		const keyPressed = event.key;
-		if (keyPressed === 'Escape' && isOpen) {
-            window.scrollTo({top: 0, behavior: 'smooth'});
+        if (event.key === 'Escape' && isOpen) {
+            if (browser) {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
             onClose();
-		}
-	}
+        }
+    }
 </script>
+
 {#if isOpen}
     <div class="modal-backdrop visible" onclick={onClose} role="presentation"></div>
 {/if}
@@ -71,15 +79,3 @@
 </div>
 
 <svelte:window on:keydown={handleKeyNavigation} />
-<!-- 
-<script lang="ts">
-    let isDrawer: boolean = $state(false);
-    let currentSidebar: string = $state("useItem");
-</script>
-<Drawer isOpen={isDrawer} position="right" width="768px" onClose={() => isDrawer = !isDrawer}>
-    <div class="form-group w-100 p-5">
-        {#if currentSidebar === "useItem"}
-            {@render useItem()}
-        {/if}
-    </div>
-</Drawer> -->
