@@ -8,6 +8,7 @@
 	
 	import Rupiah from "../../../components/shared/Rupiah.svelte";
 	import Navigation from "../../../components/Navigation.svelte";
+	import { loadToken } from "../../../library/validator/useAuth";
    
 	interface Types {
 		ID: number;
@@ -41,6 +42,7 @@
     let fee: string = $state('');
 
     onMount(async () => {
+		loadToken();
         await loadTypes();
         await loadRanges();
     });

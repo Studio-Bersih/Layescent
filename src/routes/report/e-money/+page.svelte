@@ -8,6 +8,7 @@
 	import { initializeDate } from "../../../library/validator/useDefault";
 
     import Navigation from "../../../components/Navigation.svelte";
+	import { loadToken } from "../../../library/validator/useAuth";
     
     interface Rekap {
         ID: number;
@@ -29,6 +30,7 @@
     let totalFee = $state(0);
 
     async function initializePage(): Promise<void> {
+        loadToken();
         const { status, message, data } = await db({
             start_date: startDate,
             end_date: endDate,

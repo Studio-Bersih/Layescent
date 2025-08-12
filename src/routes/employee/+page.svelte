@@ -6,6 +6,7 @@
 	import { useConfiguration } from "../../config/useConfiguration";
 
 	import Navigation from "../../components/Navigation.svelte";
+	import { loadToken } from "../../library/validator/useAuth";
 
     interface Users { 
         ID: number; 
@@ -20,6 +21,7 @@
     onMount(() => initializePage());
 
     async function initializePage(): Promise <void> {
+        loadToken();
         const { status, message, data } = await db({
             usaha: $useConfiguration.usaha
         }, 'Users');

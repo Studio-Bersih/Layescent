@@ -6,6 +6,7 @@
 	import { initializeDate } from "../../../library/validator/useDefault";
 
     import Navigation from "../../../components/Navigation.svelte";
+	import { loadToken } from "../../../library/validator/useAuth";
     
     interface Logs {
         USAHA: string;
@@ -24,6 +25,8 @@
             toast.error("Tanggal mulai dan selesai harus diisi.");
             return;
         }
+
+        loadToken();
 
         const { status, message, data } = await db({
             startDate: startDate,

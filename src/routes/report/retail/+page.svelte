@@ -8,6 +8,7 @@
 	import { rupiahFormatter } from "../../../library/utils/useFormatter";
 
     import Navigation from "../../../components/Navigation.svelte";
+	import { loadToken } from "../../../library/validator/useAuth";
 
     interface HistoryPenjualan {
         ID: number;
@@ -44,6 +45,7 @@
     let selectedStaff: string = $state($useConfiguration.token);
 
     onMount(async () => {
+        loadToken();
         getReports();
         getStaff();
     });

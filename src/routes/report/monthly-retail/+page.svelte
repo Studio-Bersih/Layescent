@@ -8,6 +8,7 @@
     
 	import Navigation from "../../../components/Navigation.svelte";
 	import { Carbon } from "../../../library/utils/Carbon";
+	import { loadToken } from "../../../library/validator/useAuth";
  
     let startDate = $state(initializeDate("first"));
     let endDate = $state(initializeDate("last"));
@@ -35,6 +36,7 @@
     });
 
     async function loadReport() {
+        loadToken();
         const { status, message, data } = await db({
             usaha,
             start_date: startDate,
