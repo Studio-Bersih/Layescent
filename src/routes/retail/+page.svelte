@@ -52,21 +52,28 @@
     })
 
     let idleTimeout: ReturnType<typeof setTimeout>;
+    let refreshTimeout: ReturnType<typeof setTimeout>;
 
     function resetIdleTimer() {
         clearTimeout(idleTimeout);
+        clearTimeout(refreshTimeout);
+
         idleTimeout = setTimeout(() => {
             if (searchByNameController) {
                 searchByNameController.focus();
             }
-        }, 10000); // 20 seconds
+        }, 10000); // 10 seconds
+
+        refreshTimeout = setTimeout(() => {
+            initializePage();
+        }, 300000); // 5 minutes
     }
 
     onMount(() => {
         const events = ['mousemove', 'keydown', 'mousedown', 'touchstart'];
         events.forEach(event => window.addEventListener(event, resetIdleTimer));
         resetIdleTimer(); // initialize
-        initializePage()
+        initializePage();
     });
 
     async function initializePage(): Promise <void>{
@@ -94,7 +101,7 @@
         }));
         masterProduk = masterProduk;
         masterProdukDefault = masterProduk;
-    } 
+    }
 
     function stringFilter(ID: string): void {
         if (ID === '') {
@@ -285,8 +292,7 @@
     <Navigation/>
     <div class="card shadow card-dashed mt-3">
         <div class="card-header">
-            <div class="card-title">
-            </div>
+            <div class="card-title">Penjualan Retail</div>
             <div class="card-toolbar">
                 <span class="h2 fw-bolder text-success mt-3">{rupiahFormatter.format(paidTotal)}</span>
             </div>

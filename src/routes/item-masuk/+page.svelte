@@ -121,7 +121,8 @@
         }
     }
 
-    function addToCart() {
+    function addToCart(event: Event) {
+        event.preventDefault();
         if(masterProduk.length === 1){
             const item: Master = masterProduk[0];
 
@@ -154,10 +155,6 @@
 
         if(!mainItem){
             return toast.error("Item tidak ditemukan!");
-        }
-
-        if (value > mainItem.stokItem) {
-            toast.error('Stok tidak cukup!');
         }
 
         cartData[ID].totalHarga = value * findOnCart.hargaJual
@@ -273,25 +270,25 @@
             usaha: $useConfiguration.usaha,
             cabangTujuan: Number(setBranch),
             cabangAsal: Number($useConfiguration.cabang)
-        }, 'Item-Transfer');
+        }, 'Item-Masuk');
 
         isLoading = false;
 
-        if (status === 'success') {
-            toast.success(message);
-            removeAll();
-            initializePage();
+        if (status === 'error') {
+            toast.error(message);
             return;
         }
-
-        toast.error(message);
+        
+        toast.success(message);
+        removeAll();
+        initializePage();
     }
 </script>
 <div class="container-fluid">
     <Navigation/>
     <div class="card shadow card-dashed mt-3">
         <div class="card-header">
-            <div class="card-title">Item Transfer</div>
+            <div class="card-title fw-bolder">Item Masuk</div>
             <div class="card-toolbar">
                 <span class="h2 fw-bolder text-success mt-3">{rupiahFormatter.format(paidTotal)}</span>
             </div>
@@ -362,7 +359,7 @@
                     </div>
 
                     <div class="form-group my-3">
-                        <label for="setKeterangan" class="form-label fw-bold">Keterangan</label>
+                        <label for="setKeterangan" class="form-label fw-bold">Keterangan Item Masuk</label>
                         <textarea class="form-control" bind:value={keterangan} rows="3" placeholder="Masukkan Keterangan"></textarea>
                     </div>
 

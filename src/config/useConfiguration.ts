@@ -1,7 +1,7 @@
 import { writable } from "svelte/store";
 
 const useConfiguration = writable({
-    isProduction: true,
+    isProduction: false,
     token: '',
     usaha: '',
     roles: '',
