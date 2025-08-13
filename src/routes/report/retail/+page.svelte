@@ -41,6 +41,8 @@
     let totalTransfer: number = $state(0);
     let totalAdmin: number = $state(0);
 
+    let totalBersih: number = $state(0);
+
     let allStaff: Users[] = $state([]);
     let selectedStaff: string = $state($useConfiguration.token);
 
@@ -67,6 +69,12 @@
         totalAdmin = Number(data.fee_total) ?? 0;
 
         totalTransaksi = newData.reduce( (acc, item) => acc + item.TOTAL_TRANSAKSI, 0) ?? 0;
+
+        // Calculate total bersih
+        totalBersih = newData.reduce(
+            (acc, item) => acc + ((item.HARGA_JUAL * item.TERJUAL) - (item.HARGA_BELI * item.TERJUAL)), 
+            0
+        ) ?? 0;
     }
 
     
@@ -162,15 +170,16 @@
                         <tr class="text-center fw-bold">
                             <th>#</th>
                             <th>Nama</th>
+                            <th>Terjual</th>
                             <th>Sisa Stok</th>
                             {#if $useConfiguration.roles === "Admin"}                            
                                 <th>Harga Beli</th>
                             {/if}
-                            <th>Terjual</th>
                             <th>Harga Jual</th>
                             <th>Total Transaksi</th>
                             <th>Waktu Transaksi</th>
                             {#if $useConfiguration.roles === "Admin"}
+                                <th>Keuntungan Bersih</th>
                                 <th>Hapus Transaksi</th>
                             {/if}
                         </tr>
@@ -185,15 +194,16 @@
                                 <tr class="text-center">
                                     <td>{index + 1}</td>
                                     <td class="text-start">{newData.NAMA}</td>
+                                    <td>{newData.TERJUAL}</td>
                                     <td>{newData.SISA_STOK}</td>
                                     {#if $useConfiguration.roles === "Admin"}                                    
                                         <td>{rupiahFormatter.format(newData.HARGA_BELI)}</td>
                                     {/if}
-                                    <td>{newData.TERJUAL}</td>
                                     <td>{rupiahFormatter.format(newData.HARGA_JUAL)}</td>
                                     <td>{rupiahFormatter.format(newData.TOTAL_TRANSAKSI)}</td>
                                     <td>{newData.WAKTU_TRANSAKSI}</td>
                                     {#if $useConfiguration.roles === "Admin"}
+                                        <td>{rupiahFormatter.format((newData.HARGA_JUAL * newData.TERJUAL) - (newData.HARGA_BELI * newData.TERJUAL))}</td>
                                         <td>
                                             <button type="button" onclick={() => confirmDelete(newData.ID)} class="btn btn-sm btn-icon btn-danger">
                                                 <img src="/icons/trash.svg" class="h-25px" alt="SVG Trash" />
@@ -203,35 +213,51 @@
                                 </tr>
                             {/each}
                             <tr>
-                                <td colspan="6" class="text-end fw-bolder">Total Transaksi</td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td class="text-center"></td>
+                                <td class="text-center"></td>
+                                <td class="text-center"></td>
                                 <td class="text-center">{rupiahFormatter.format(totalTransaksi)}</td>
-                            </tr>
-                            <tr>
-                                <td colspan="6" class="text-end fw-bolder">Total Tarik Tunai</td>
-                                <td class="text-center">- {rupiahFormatter.format(totalTarikTunai)}</td>
-                            </tr>
-                            <tr>
-                                <td colspan="6" class="text-end fw-bolder">Total Transfer</td>
-                                <td class="text-center">{rupiahFormatter.format(totalTransfer)}</td>
-                            </tr>
-                            {#if $useConfiguration.roles === "Admin"}
-                                <tr>
-                                    <td colspan="6" class="text-end fw-bolder">Total Admin</td>
-                                    <td class="text-center">{rupiahFormatter.format(totalAdmin)}</td>
-                                </tr>
-                                <tr>
-                                    <td colspan="6" class="text-end fw-bolder text-success">Total Kas (Dengan Admin)</td>
-                                    <td class="text-center">{rupiahFormatter.format(totalTransaksi + (totalTransfer - totalTarikTunai + totalAdmin))}</td>
-                                </tr>
-                            {/if}
-                            <tr>
-                                <td colspan="6" class="text-end fw-bolder text-golden">Total Kas (Tanpa Admin)</td>
-                                <td class="text-center">{rupiahFormatter.format(totalTransaksi + (totalTransfer - totalTarikTunai))}</td>
+                                <td class="text-center"></td>
+                                <td class="text-center text-success fw-bold">{rupiahFormatter.format(totalBersih)}</td>
+                                <td class="text-center"></td>
                             </tr>
                         {/if}
                     </tbody>
                 </table>
             </div>
+
+            <div class="separator my-3"></div>
+            <h3>Ringkasan Penjualan Hari Ini</h3>
+
+            <table class="table table-striped align-center mt-5">
+                <thead>
+                    <tr class="fw-bolder">
+                        <th>Total Transaksi</th>
+                        <th>Total Tarik Tunai</th>
+                        <th>Total Transfer</th>
+                        {#if $useConfiguration.roles === "Admin"}
+                            <th>Total Admin</th>
+                            <th>Total Kas (Dengan Admin)</th>
+                        {/if}
+                        <th>Total Kas (Tanpa Admin)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr class="">
+                        <td>{rupiahFormatter.format(totalTransaksi)}</td>
+                        <td>- {rupiahFormatter.format(totalTarikTunai)}</td>
+                        <td>{rupiahFormatter.format(totalTransfer)}</td>
+                        {#if $useConfiguration.roles === "Admin"}
+                            <td>{rupiahFormatter.format(totalAdmin)}</td>
+                            <td>{rupiahFormatter.format(totalTransaksi + (totalTransfer - totalTarikTunai + totalAdmin))}</td>
+                        {/if}
+                        <td>{rupiahFormatter.format(totalTransaksi + (totalTransfer - totalTarikTunai))}</td>
+                    </tr>
+                </tbody>
+            </table>
 
         </div>
     </div>

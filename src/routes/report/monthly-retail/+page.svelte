@@ -20,19 +20,25 @@
         total_cash: number;
         total_kembali: number;
         total_transaksi: number;
+        total_penjualan: number;
+        total_net: number;  
     }
 
     interface Totals {
         total_cash: number;
         total_kembali: number;
         total_transaksi: number;
+        total_net: number;
+        total_penjualan: number;
     }
 
     let report: DailyData[] = $state([]);
     let totals: Totals = $state({
+        total_penjualan: 0,
         total_cash: 0,
         total_kembali: 0,
-        total_transaksi: 0
+        total_transaksi: 0,
+        total_net: 0
     });
 
     async function loadReport() {
@@ -95,8 +101,7 @@
                         <th class="text-center">Tanggal</th>
                         <th class="text-center">Jumlah Transaksi</th>
                         <th>Total Cash</th>
-                        <th>Total Kembali</th>
-                        <th>Total Transaksi</th>
+                        <th>Keuntungan Bersih</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -106,17 +111,15 @@
                         {#each report as item}
                             <tr>
                                 <td class="text-center">{Carbon(item.tanggal, "date-short")}</td>
-                                <td class="text-center">{item.jumlah_transaksi}</td>
-                                <td>{rupiahFormatter.format(item.total_cash)}</td>
-                                <td>{rupiahFormatter.format(item.total_kembali)}</td>
-                                <td>{rupiahFormatter.format(item.total_transaksi)}</td>
+                                <td class="text-center">{Number(item.jumlah_transaksi)}</td>
+                                <td>{rupiahFormatter.format(Number(item.total_penjualan))}</td>
+                                <td>{rupiahFormatter.format(Number(item.total_net))}</td>
                             </tr>
                         {/each}
                         <tr>
                             <td colspan="2"></td>
-                            <td class="fw-bold">{rupiahFormatter.format(totals.total_cash || 0)}</td>
-                            <td class="fw-bold">{rupiahFormatter.format(totals.total_kembali || 0)}</td>
-                            <td class="fw-bold">{rupiahFormatter.format(totals.total_transaksi || 0)}</td>
+                            <td class="fw-bold">{rupiahFormatter.format(totals.total_penjualan || 0)}</td>
+                            <td class="fw-bold">{rupiahFormatter.format(totals.total_net || 0)}</td>
                         </tr>
                     {/if}
                 </tbody>
