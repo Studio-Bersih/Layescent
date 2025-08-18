@@ -1,14 +1,14 @@
 <script lang="ts">
-	import { onMount } from "svelte";
-	import { toast } from "svelte-sonner";
-	import { db } from "../../library/hooks/db";
-	import { useNotice } from "../../library/validator/useNotice";
-	import { useConfiguration } from "../../config/useConfiguration";
-	import { currencySanitizer, rupiahFormatter } from "../../library/utils/useFormatter";
+    import { onMount } from "svelte";
+    import { toast } from "svelte-sonner";
+    import { db } from "../../library/hooks/db";
+    import { loadToken } from "../../library/validator/useAuth";
+    import { useNotice } from "../../library/validator/useNotice";
+    import { useConfiguration } from "../../config/useConfiguration";
+    import { currencySanitizer, rupiahFormatter } from "../../library/utils/useFormatter";
 
     import Rupiah from "../../components/shared/Rupiah.svelte";
-	import Navigation from "../../components/Navigation.svelte";
-	import { loadToken } from "../../library/validator/useAuth";
+    import Navigation from "../../components/Navigation.svelte";
 
     interface Transaction {
         type: string;
@@ -42,9 +42,15 @@
 
     let transactions: Transaction[] = $state([]);
 
+    // NEW: For command mode
+    let commandInput: string = $state('');
+    let parsedCommand: Transaction | null = $state(null);
+
+    let safeMode: boolean = $state(false);
+
     onMount(() => initializePage());
 
-    async function initializePage(): Promise <void> {
+    async function initializePage(): Promise<void> {
         loadToken();
         const { status, message, data } = await db({
             'USAHA': $useConfiguration.usaha
@@ -56,7 +62,7 @@
         }
 
         transactionTypes = data;
-        selectedType = ''
+        selectedType = '';
     }
 
     function calculateFee(type: string, rawAmount: string): number {
@@ -85,7 +91,7 @@
         toast('Pencatatan Transaksi', {
             description: 'Pastikan data yang dimasukkan sudah benar.',
             action: {
-            label: useNotice.toast.areYouSure,
+                label: useNotice.toast.areYouSure,
                 onClick: async () => {
                     if (!selectedType || !transactionAmount) {
                         toast.error(useNotice.general.invalidField);
@@ -95,13 +101,13 @@
                     const sanitizedAmount = currencySanitizer(transactionAmount);
                     const useFee = calculateFee(selectedType, transactionAmount);
                     
-                    const { status, message } = await db({
+                    const { status, message, data } = await db({
                         TYPE: selectedType,
                         AMOUNT: sanitizedAmount,
                         FEE: useFee,
                         TOKEN: $useConfiguration.token,
                         USAHA: $useConfiguration.usaha
-                    }, 'E-Money/Insert')
+                    }, 'E-Money/Insert');
 
                     if (status === "error") {
                         toast.error(message);
@@ -111,7 +117,7 @@
                     transactions = [...transactions, {
                         type: selectedType,
                         amount: sanitizedAmount,
-                        fee: useFee,
+                        fee: data ?? 0,
                         timestamp: new Date().toLocaleString()
                     }];
 
@@ -120,10 +126,52 @@
                     toast.success(message);
                 }
             },
-        })
+        });
+    }
 
+    // NEW: parse command input
+    function parseCommand(input: string): Transaction | null {
+        const match = input.match(/^(TARIK|TRANSFER)-(\d+)$/i);
+        if (!match) return null;
+
+        const type = match[1].toUpperCase() === 'TARIK' ? 'Tarik Tunai' : 'Transfer Tunai';
+        const amount = parseInt(match[2]);
+        const fee = calculateFee(type, String(amount));
+
+        return { type, amount, fee, timestamp: new Date().toLocaleString() };
+    }
+
+    $effect(() => {
+        parsedCommand = parseCommand(commandInput);
+    });
+
+    async function doCommandPost(): Promise<void> {
+        if (!parsedCommand) {
+            toast.error("Format perintah salah. Gunakan TARIK-100000 atau TRANSFER-50000");
+            return;
+        }
+
+        const { status, message, data } = await db({
+            TYPE: parsedCommand.type,
+            AMOUNT: parsedCommand.amount,
+            FEE: parsedCommand.fee,
+            TOKEN: $useConfiguration.token,
+            USAHA: $useConfiguration.usaha
+        }, 'E-Money/Insert');
+
+        if (status === "error") {
+            toast.error(message);
+            return;
+        }
+
+        parsedCommand.fee = data ?? 0;
+
+        transactions = [...transactions, parsedCommand];
+        commandInput = '';
+        toast.success(message);
     }
 </script>
+
 <div class="container">
     <Navigation/>
     <div class="row">
@@ -135,30 +183,65 @@
 {#snippet useForm()}
     <div class="card shadow-sm my-7">
         <div class="card-body">
-            <form onsubmit={doPost}>
-                <div class="form-group">
-                    <label for="transactionType" class="form-label fw-bold">Jenis Transaksi</label>
-                    <select id="transactionType" class="form-select" bind:value={selectedType}>
-                        <option value="" selected disabled>Pilih Tipe</option>
-                        {#each transactionTypes as type}
-                            <option value={type.NAME}>{type.NAME}</option>
-                        {/each}
-                    </select>
-                </div>
-                <div class="form-group my-3">
-                    <label for="payment" class="form-label fw-bold">Jumlah Transaksi</label>
-                    <Rupiah id="payment" bind:value={transactionAmount} useClass="form-control mt-2"  disabled={false}/>
-                </div>
-                <button type="submit" class="btn btn-primary mt-3">Simpan Pembayaran</button>
-            </form>
+            
+        <button type="button" onclick={() => safeMode = true} class="btn btn-sm btn-primary my-1 mx-1">Safe Mode</button>
+        <button type="button" onclick={() => safeMode = false} class="btn btn-sm btn-warning my-1 mx-1">Typing Mode</button>
+
+        <div class="separator my-2"></div>
+
+        {#if safeMode}
+            {@render manualMode()}
+        {:else}
+            {@render commandMode()}
+        {/if}
         </div>
     </div>
+{/snippet}  
+
+{#snippet commandMode()}
+    <div class="tab-pane fade show active" id="commandMode">
+        <form onsubmit={doCommandPost}>
+            <div class="form-group">
+                <label for="commandInput" class="form-label fw-bold">Quick Command</label>
+                <input id="commandInput" type="text" class="form-control" placeholder="e.g. TARIK-100000 or TRANSFER-53200" bind:value={commandInput} 
+                />
+            </div>
+
+            {#if parsedCommand}
+                <div class="alert alert-info mt-3">
+                    <b>{parsedCommand.type}</b> sebesar 
+                    {rupiahFormatter.format(parsedCommand.amount)} <br/>
+                    <!-- Biaya Admin: {rupiahFormatter.format(parsedCommand.fee)} -->
+                </div>
+            {/if}
+
+            <button type="submit" class="btn btn-success mt-3">Proses Transaksi</button>
+        </form>
+    </div>
+{/snippet}
+
+{#snippet manualMode()}
+    <form onsubmit={doPost}>
+        <div class="form-group">
+            <label for="transactionType" class="form-label fw-bold">Jenis Transaksi</label>
+            <select id="transactionType" class="form-select" bind:value={selectedType}>
+                <option value="" disabled>Pilih Tipe</option>
+                {#each transactionTypes as type}
+                    <option value={type.NAME}>{type.NAME}</option>
+                {/each}
+            </select>
+        </div>
+        <div class="form-group my-3">
+            <label for="payment" class="form-label fw-bold">Jumlah Transaksi</label>
+            <Rupiah id="payment" bind:value={transactionAmount} useClass="form-control mt-2"/>
+        </div>
+        <button type="submit" class="btn btn-primary mt-3">Simpan Pembayaran</button>
+    </form>
 {/snippet}
 
 {#snippet useHistory()}
     <div class="card shadow-sm my-7">
         <div class="card-body">
-            
             <h2>Riwayat Transaksi</h2>
             <table class="table table-bordered mt-3">
                 <thead>
@@ -186,7 +269,6 @@
                     {/if}
                 </tbody>
             </table>
-
         </div>
     </div>
 {/snippet}
