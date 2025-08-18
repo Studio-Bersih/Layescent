@@ -174,10 +174,10 @@
     }
 
     async function updateStock(id: number, stock: number, secondStock: number, thirdStock: number): Promise <void> {
-        if (stock < 1) {
-            toast.error("Stok tidak boleh dibawah 0!");
-            return;
-        }
+        // if (stock < 1) {
+        //     toast.error("Stok tidak boleh dibawah 0!");
+        //     return;
+        // }
 
         const { status , message } = await db({
             id : id,
