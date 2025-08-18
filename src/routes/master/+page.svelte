@@ -267,6 +267,45 @@
         keterangan = '';
         stokItem = null; 
     }
+
+    function downloadCSV() {
+        if (!newData || newData.length === 0) {
+            console.warn("No data to export");
+            return;
+        }
+
+        // Exclude unwanted keys
+        const excludeKeys = ["id"];
+
+        // Get headers except excluded ones
+        const headers = Object.keys(newData[0]).filter(h => !excludeKeys.includes(h));
+
+        // Beautify headers (camelCase → Title Case)
+        const beautifyHeader = (key: string) =>
+            key
+                .replace(/([A-Z])/g, " $1") // split camelCase
+                .replace(/^./, str => str.toUpperCase()) // capitalize first letter
+                .trim();
+
+        const prettyHeaders = headers.map(beautifyHeader);
+
+        // Build CSV rows
+        const csvRows = newData.map((item: any) =>
+            headers.map(h => `"${(item[h] ?? "").toString().replace(/"/g, '""')}"`).join(",")
+        );
+
+        // Add BOM for Excel compatibility
+        const csv = "\uFEFF" + [prettyHeaders.join(","), ...csvRows].join("\r\n");
+        const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+        const url = URL.createObjectURL(blob);
+
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = "Laporan-Item.csv";
+        link.click();
+
+        URL.revokeObjectURL(url);
+    }
 </script>
 <Navigation/>
 <div class="container-fluid">
@@ -275,6 +314,9 @@
             <div class="card-toolbar">
                 <button type="button" onclick={viewForm} class="btn btn-sm btn-success me-1 mb-1">
                     <img src="/icons/pen.svg" class="h-20px me-2" alt="SVG Input Item" /> Buat Item Baru
+                </button>
+                <button type="button" onclick={downloadCSV} class="btn btn-sm btn-info me-1 mb-1">
+                    <img src="/icons/Item.svg" class="h-20px me-2" alt="SVG Input Item" /> Unduh Laporan Stok Item
                 </button>
             </div>
         </div>
