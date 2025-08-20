@@ -35,6 +35,7 @@
 
     let usaha: string = $useConfiguration.usaha;
     let newTypeName: string = $state('');
+	let setType: string = $state('');
 
     let selectedTypeId: number = $state(0);
     let rangeStart: string = $state('');
@@ -98,6 +99,7 @@
 				onClick: async () => {
 					const { status, message, data } = await db({
 						name: newTypeName,
+						type: setType,
 						usaha: usaha,
 					}, 'E-Money/Insert-Type');
 
@@ -106,6 +108,8 @@
 						return;
 					}
 
+					newTypeName = "";
+					setType = "";
 					toast.success(message);
 					await loadTypes();
 				}
@@ -171,14 +175,22 @@
         <!-- Add New Type -->
         <div class="col-md-6">
             <div class="card mb-4">
-                <div class="card-body">
+                <form onsubmit={addType} class="card-body">
                     <h5 class="card-title">Tambah Tipe Transaksi</h5>
                     <div class="mb-3">
                         <label for="namaTipe" class="form-label">Nama Tipe</label>
-                        <input type="text" bind:value={newTypeName} class="form-control" placeholder="Cth: Pembayaran E-Money" />
+                        <input type="text" bind:value={newTypeName} class="form-control" placeholder="Cth: Pembayaran E-Money" required/>
                     </div>
-                    <button onclick={addType} class="btn btn-primary">Tambah</button>
-                </div>
+                    <div class="mb-3">
+                        <label for="namaTipe" class="form-label">Tipe E-Money</label>
+						<select bind:value={setType} class="form-select" required>
+							<option value="" selected disabled>Pilih</option>
+							<option value="Decrease">Mengurangi Uang Fisik</option>
+							<option value="Increase">Menambah Uang Fisik</option>
+						</select>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Tambah</button>
+                </form>
             </div>
         </div>
 

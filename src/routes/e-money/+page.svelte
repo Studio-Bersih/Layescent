@@ -41,6 +41,7 @@
     let transactionAmount: string = $state('');
 
     let transactions: Transaction[] = $state([]);
+    let isLoading: boolean = $state(false);
 
     // NEW: For command mode
     let commandInput: string = $state('');
@@ -62,6 +63,7 @@
         }
 
         transactionTypes = data;
+        console.log(transactionTypes)
         selectedType = '';
     }
 
@@ -93,37 +95,46 @@
             action: {
                 label: useNotice.toast.areYouSure,
                 onClick: async () => {
-                    if (!selectedType || !transactionAmount) {
-                        toast.error(useNotice.general.invalidField);
-                        return;
+                    try {
+                        if (!selectedType || !transactionAmount) {
+                            toast.error(useNotice.general.invalidField);
+                            return;
+                        }
+
+                        const sanitizedAmount = currencySanitizer(transactionAmount);
+                        const useFee = calculateFee(selectedType, transactionAmount);
+
+                        isLoading = true;
+
+                        const { status, message, data } = await db({
+                            TYPE: selectedType,
+                            AMOUNT: sanitizedAmount,
+                            FEE: useFee,
+                            TOKEN: $useConfiguration.token,
+                            USAHA: $useConfiguration.usaha
+                        }, 'E-Money/Insert');
+
+                        isLoading = false;
+
+                        if (status === "error") {
+                            toast.error(message);
+                            return;
+                        }
+
+                        transactions = [...transactions, {
+                            type: selectedType,
+                            amount: sanitizedAmount,
+                            fee: data ?? 0,
+                            timestamp: new Date().toLocaleString()
+                        }];
+
+                        selectedType = '';
+                        transactionAmount = '';
+                        toast.success(message);
+                    } catch (error) {
+                        isLoading = false;
+                        toast.error(useNotice.connection.default);
                     }
-
-                    const sanitizedAmount = currencySanitizer(transactionAmount);
-                    const useFee = calculateFee(selectedType, transactionAmount);
-                    
-                    const { status, message, data } = await db({
-                        TYPE: selectedType,
-                        AMOUNT: sanitizedAmount,
-                        FEE: useFee,
-                        TOKEN: $useConfiguration.token,
-                        USAHA: $useConfiguration.usaha
-                    }, 'E-Money/Insert');
-
-                    if (status === "error") {
-                        toast.error(message);
-                        return;
-                    }
-
-                    transactions = [...transactions, {
-                        type: selectedType,
-                        amount: sanitizedAmount,
-                        fee: data ?? 0,
-                        timestamp: new Date().toLocaleString()
-                    }];
-
-                    selectedType = '';
-                    transactionAmount = '';
-                    toast.success(message);
                 }
             },
         });
@@ -131,14 +142,41 @@
 
     // NEW: parse command input
     function parseCommand(input: string): Transaction | null {
-        const match = input.match(/^(TARIK|TRANSFER)-(\d+)$/i);
+        // If transactionTypes hasn't been loaded
+        if (transactionTypes.length < 1) {
+            toast.error("Konfigurasi transaksi dimuat. Semoga lancar :)");
+            return null;
+        }
+
+        // Match format: <keyword>-<amount>
+        const match = input.match(/^([a-zA-Z]+)-(\d+)$/i);
         if (!match) return null;
 
-        const type = match[1].toUpperCase() === 'TARIK' ? 'Tarik Tunai' : 'Transfer Tunai';
+        const keyword = match[1].toLowerCase();
         const amount = parseInt(match[2]);
-        const fee = calculateFee(type, String(amount));
 
-        return { type, amount, fee, timestamp: new Date().toLocaleString() };
+        // Strict match (case-insensitive)
+        const foundType = transactionTypes.find(
+            t => t.NAME.toLowerCase() === keyword
+        );
+
+        if (!foundType) {
+            const available = transactionTypes.map(t => t.NAME).join(", ");
+            toast.error(
+                `Tipe transaksi "${keyword}" tidak ditemukan. ` +
+                `Gunakan salah satu dari: ${available}`
+            );
+            return null;
+        }
+
+        const fee = calculateFee(foundType.NAME, String(amount));
+
+        return {
+            type: foundType.NAME,
+            amount,
+            fee,
+            timestamp: new Date().toLocaleString()
+        };
     }
 
     $effect(() => {
@@ -146,29 +184,37 @@
     });
 
     async function doCommandPost(): Promise<void> {
-        if (!parsedCommand) {
-            toast.error("Format perintah salah. Gunakan TARIK-100000 atau TRANSFER-50000");
-            return;
+        try {
+            if (!parsedCommand) {
+                toast.error("Format perintah salah. Gunakan TT-100000 atau TF-50000");
+                return;
+            }
+            isLoading = true;
+
+            const { status, message, data } = await db({
+                TYPE: parsedCommand.type,
+                AMOUNT: parsedCommand.amount,
+                FEE: parsedCommand.fee,
+                TOKEN: $useConfiguration.token,
+                USAHA: $useConfiguration.usaha
+            }, 'E-Money/Insert');
+
+            isLoading = false;
+
+            if (status === "error") {
+                toast.error(message);
+                return;
+            }
+
+            parsedCommand.fee = data ?? 0;
+
+            transactions = [...transactions, parsedCommand];
+            commandInput = '';
+            toast.success(message);
+        } catch (error) {
+            isLoading = false;
+            toast.error(useNotice.connection.default);
         }
-
-        const { status, message, data } = await db({
-            TYPE: parsedCommand.type,
-            AMOUNT: parsedCommand.amount,
-            FEE: parsedCommand.fee,
-            TOKEN: $useConfiguration.token,
-            USAHA: $useConfiguration.usaha
-        }, 'E-Money/Insert');
-
-        if (status === "error") {
-            toast.error(message);
-            return;
-        }
-
-        parsedCommand.fee = data ?? 0;
-
-        transactions = [...transactions, parsedCommand];
-        commandInput = '';
-        toast.success(message);
     }
 </script>
 
@@ -203,7 +249,7 @@
         <form onsubmit={doCommandPost}>
             <div class="form-group">
                 <label for="commandInput" class="form-label fw-bold">Quick Command</label>
-                <input id="commandInput" type="text" class="form-control" placeholder="e.g. TARIK-100000 or TRANSFER-53200" bind:value={commandInput} 
+                <input id="commandInput" type="text" class="form-control" placeholder="e.g. TT-100000 or TF-53200" bind:value={commandInput} 
                 />
             </div>
 
@@ -215,7 +261,14 @@
                 </div>
             {/if}
 
-            <button type="submit" class="btn btn-success mt-3">Proses Transaksi</button>
+            <button type="submit" class="btn btn-success mt-3" disabled={isLoading}>
+                    {#if isLoading}
+                        Menyimpan...
+                        <span class="spinner-border spinner-border-sm align-middle ms-2"></span>
+                    {:else}
+                        Proses Transaksi
+                    {/if}
+            </button>
         </form>
     </div>
 {/snippet}
