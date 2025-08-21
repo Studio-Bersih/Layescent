@@ -79,3 +79,9 @@
 </div>
 
 <svelte:window on:keydown={handleKeyNavigation} />
+<!-- 
+<Drawer isOpen={isDrawer} position="left" width="300px" onClose={() => isDrawer = !isDrawer}>
+    <div class="p-4">
+        Lorem ipsum
+    </div>
+</Drawer> -->
