@@ -288,7 +288,7 @@
     <Navigation/>
     <div class="card shadow card-dashed mt-3">
         <div class="card-header">
-            <div class="card-title fw-bolder">Item Masuk</div>
+            <div class="card-title text-primary fw-bolder">Item Masuk</div>
             <div class="card-toolbar">
                 <span class="h2 fw-bolder text-success mt-3">{rupiahFormatter.format(paidTotal)}</span>
             </div>
