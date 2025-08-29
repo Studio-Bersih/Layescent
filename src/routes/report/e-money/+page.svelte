@@ -1,14 +1,13 @@
 <script lang="ts">
-    import { onMount } from "svelte";
     import { toast } from "svelte-sonner";
     import { db } from "../../../library/hooks/db";
 	import { Carbon } from "../../../library/utils/Carbon";
+	import { loadToken } from "../../../library/validator/useAuth";
     import { useConfiguration } from "../../../config/useConfiguration";
     import { rupiahFormatter } from "../../../library/utils/useFormatter";
 	import { initializeDate } from "../../../library/validator/useDefault";
 
     import Navigation from "../../../components/Navigation.svelte";
-	import { loadToken } from "../../../library/validator/useAuth";
     
     interface Rekap {
         ID: number;
@@ -54,8 +53,8 @@
         reports
             .filter(item => filteredToken ? item.TOKEN === filteredToken : true)
             .forEach(item => {
-                totalAmount += item.AMOUNT ?? 0;
-                totalFee += item.FEE ?? 0;
+                totalAmount += Number(item.AMOUNT) || 0;
+                totalFee += Number(item.FEE) || 0;
             });
     }
 </script>
@@ -104,7 +103,7 @@
                         <th>Jenis</th>
                         <th>Nominal</th>
                         {#if $useConfiguration.roles === "Admin"}
-                            <th>Admin</th>
+                            <th>Keuntungan Bersih</th>
                         {/if}
                         <th>Token</th>
                     </tr>
