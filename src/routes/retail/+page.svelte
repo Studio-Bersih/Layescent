@@ -260,7 +260,6 @@
             currentIndex = Math.max(currentIndex - 1, 0);
             focusButton(currentIndex);
         }
-
     }
 
     async function addByButton(index: number) {

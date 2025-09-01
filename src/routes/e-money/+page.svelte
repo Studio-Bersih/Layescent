@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { onMount } from "svelte";
+    import { onMount, tick } from "svelte";
     import { toast } from "svelte-sonner";
     import { db } from "../../library/hooks/db";
     import { loadToken } from "../../library/validator/useAuth";
@@ -47,7 +47,11 @@
     let commandInput: string = $state('');
     let parsedCommand: Transaction | null = $state(null);
 
+    let key: string = $state("");
     let safeMode: boolean = $state(false);
+
+    let searchByNameController: HTMLElement;
+    let searchBar: string = $state('');
 
     onMount(() => initializePage());
 
@@ -63,7 +67,6 @@
         }
 
         transactionTypes = data;
-        console.log(transactionTypes)
         selectedType = '';
     }
 
@@ -216,8 +219,16 @@
             toast.error(useNotice.connection.default);
         }
     }
-</script>
 
+    async function startPaid(event: KeyboardEvent){
+        key = event.key;
+        if (key == 'Escape'){
+            searchBar = '';
+            await tick();
+            searchByNameController.focus(); // It can't even focus on the input element
+        }
+    }
+</script>
 <div class="container">
     <Navigation/>
     <div class="row">
@@ -249,8 +260,7 @@
         <form onsubmit={doCommandPost}>
             <div class="form-group">
                 <label for="commandInput" class="form-label fw-bold">Quick Command</label>
-                <input id="commandInput" type="text" class="form-control" placeholder="e.g. TT-100000 or TF-53200" bind:value={commandInput} 
-                />
+                <input id="commandInput" type="text" class="form-control" placeholder="[ESC] Input Transaksi" bind:this={searchByNameController} bind:value={commandInput} />
             </div>
 
             {#if parsedCommand}
@@ -266,7 +276,7 @@
                         Menyimpan...
                         <span class="spinner-border spinner-border-sm align-middle ms-2"></span>
                     {:else}
-                        Proses Transaksi
+                        [ENTER] Simpan Transaksi
                     {/if}
             </button>
         </form>
@@ -325,3 +335,5 @@
         </div>
     </div>
 {/snippet}
+
+<svelte:window onkeydown={startPaid} />
