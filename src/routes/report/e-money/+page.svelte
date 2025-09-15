@@ -8,6 +8,7 @@
 	import { initializeDate } from "../../../library/validator/useDefault";
 
     import Navigation from "../../../components/Navigation.svelte";
+	import { onMount } from "svelte";
     
     interface Rekap {
         ID: number;
@@ -19,31 +20,73 @@
         CREATED_AT: string;
     }
 
+    interface Users { 
+        ID: number; 
+        TOKEN: string; 
+        ROLE: "Admin" | "User";
+        CABANG: number;
+        USAHA: string;
+    }
+
     let reports: Rekap[] = $state([]);
     let filteredToken: string = $state("");
     let startDate: string = $state(initializeDate("first"));
     let endDate: string = $state(initializeDate("last"));
+    let reportType: string = $state("");
     let usaha: string = $useConfiguration.usaha;
+    let users: Users[] = $state([]);
+
+    let isLoading: boolean = $state(false);
 
     let totalAmount = $state(0);
     let totalFee = $state(0);
 
+    onMount(() => loadEmployee());
+
     async function initializePage(): Promise<void> {
-        loadToken();
-        const { status, message, data } = await db({
-            start_date: startDate,
-            end_date: endDate,
-            usaha: usaha
-        }, 'Report/EMoney');
+        try {
+            loadToken();
+            isLoading = true;
 
-        if (status === "error") {
-            toast.error(message);
-            return;
+            const { status, message, data } = await db({
+                start_date: startDate,
+                end_date: endDate,
+                usaha: usaha,
+                type: reportType
+            }, 'Report/EMoney');
+
+            isLoading = false;
+
+            if (status === "error") {
+                toast.error(message);
+                return;
+            }
+
+            toast.success(message);
+            reports = data;
+            recalculateTotals();
+        } catch (error) {
+            isLoading = false;
+            toast.error("Terjadi kesalahan saat memuat laporan.");
         }
+    }
 
-        toast.success(message);
-        reports = data;
-        recalculateTotals();
+    async function loadEmployee() {
+        try {
+            loadToken();
+            const { status, message, data } = await db({
+                usaha: $useConfiguration.usaha
+            }, 'Users');
+
+            if (status === 'error') {
+                toast.error(message);
+                return;
+            }
+
+            users = data;
+        } catch (error) {
+            toast.error("Terjadi kesalahan saat memuat daftar staff.");
+        }
     }
 
     function recalculateTotals() {
@@ -75,11 +118,37 @@
                     <input type="date" class="form-control" bind:value={endDate} />
                 </div>
                 <div class="col-md-3">
-                    <label for="setPIC" class="form-label fw-bold">Person in Charge</label>
-                    <input type="text" class="form-control" bind:value={filteredToken} placeholder="Cth: tokengopay123" />
+                    <label for="selectRange" class="form-label">Tipe Laporan</label>
+                    <select bind:value={reportType} class="form-select" required>
+                        <option value="" selected disabled>Pilih Tipe</option>
+                        <optgroup label="Per PIC">
+                            {#if users.length === 0}
+                                <option value="" disabled>Sedang memuat staff..</option>
+                            {:else}
+                                {#each users as users }
+                                    <option value={users.TOKEN}>{users.TOKEN}</option>
+                                {/each}
+                            {/if}
+                        </optgroup>
+                        <optgroup label="Per Cabang">
+                            <option value="Cabang 1">Cabang 1</option>
+                            <option value="Cabang 2">Cabang 2</option>
+                            <option value="Cabang 3">Cabang 3</option>
+                        </optgroup>
+                        <optgroup label="Laporan Bulanan">
+                            <option value="Semua">Semua Cabang & Staff</option>
+                        </optgroup>
+                    </select>
                 </div>
                 <div class="col-md-3 d-flex align-items-end">
-                    <button class="btn btn-primary w-100" onclick={initializePage}>Tampilkan</button>
+                    <button class="btn btn-primary w-100" onclick={initializePage} disabled={isLoading}>
+                        {#if isLoading}
+                            Memuat
+                            <span class="spinner-border spinner-border-sm align-middle ms-2"></span>
+                        {:else}
+                            Tampilkan
+                        {/if}
+                    </button>
                 </div>
             </div>
 

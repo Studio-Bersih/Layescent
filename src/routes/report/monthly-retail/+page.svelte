@@ -50,7 +50,6 @@
     let startDate = $state(initializeDate("first"));
     let endDate = $state(initializeDate("last"));
 
-    let usaha = $useConfiguration.usaha;
     let users: Users[] = $state([]);
     let reportType: string = $state("");
 
