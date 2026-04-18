@@ -2,13 +2,13 @@
 	import { onMount, tick } from "svelte";
 	import { toast } from "svelte-sonner";
 	import { db } from "../../library/hooks/db";
+	import { loadToken } from "../../library/validator/useAuth";
 	import { useNotice } from "../../library/validator/useNotice";
 	import { useConfiguration } from "../../config/useConfiguration";
 	import { currencySanitizer, rupiahFormatter } from "../../library/utils/useFormatter";
 
     import Rupiah from "../../components/shared/Rupiah.svelte";
 	import Navigation from "../../components/Navigation.svelte";
-	import { loadToken } from "../../library/validator/useAuth";
 
     interface Master { 
         id: number;
@@ -28,6 +28,8 @@
         hargaJual: number; 
         totalHarga: number 
     }
+
+    const Auth: string = $useConfiguration.roles;
 
     let cashController: HTMLElement;
     let searchByNameController: HTMLElement;
@@ -325,7 +327,9 @@
                                     <tr class="text-center fw-bold">
                                         <th>#</th>
                                         <th>Nama</th>
-                                        <th>Stok</th>
+                                        {#if $useConfiguration.usaha != "Nick Cell" || Auth === "Admin"}
+                                            <th>Stok</th>
+                                        {/if}
                                         <th>Harga</th>
                                         <th class="text-end">Barcode</th>
                                         <th>Act</th>
@@ -336,7 +340,9 @@
                                         <tr>
                                             <td class="text-center">{index + 1}</td>
                                             <td>{newData.name}</td>
-                                            <td class="text-center">{newData.stokItem}</td>
+                                            {#if $useConfiguration.usaha != "Nick Cell" || Auth === "Admin"}
+                                                <td class="text-center">{newData.stokItem}</td>
+                                            {/if}
                                             <td class="text-center">{rupiahFormatter.format(newData.hargaJual)}</td>
                                             <td class="text-end text-muted">{newData.barcode}</td>
                                             <td class="text-center">

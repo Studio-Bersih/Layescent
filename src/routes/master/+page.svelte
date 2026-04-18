@@ -145,7 +145,7 @@
             hargaStok: currencySanitizer(hargaStok),
             hargaJual: currencySanitizer(hargaJual),
             keterangan: keterangan,
-            stok : stokItem ?? 1,
+            stok : stokItem ?? 0,
             usaha: $useConfiguration.usaha
         }, 'Create-Item');
 
@@ -204,7 +204,7 @@
             hargaStok: currencySanitizer(hargaStok),
             hargaJual: currencySanitizer(hargaJual),
             keterangan: keterangan,
-            stok : stokItem ?? 1
+            stok : stokItem ?? 0
         }, 'Update-Item');
 
         if (status === 'error') {
@@ -440,7 +440,7 @@ function downloadCSV() {
             <div class="col">
                 <div class="form-group">
                     <label for="stokItem" class="form-label fw-bold">Stok Item</label>
-                    <input type="number" bind:value={stokItem} min="1" class="form-control form-control-sm" placeholder="Stok" required/>
+                    <input type="number" bind:value={stokItem} min="0" class="form-control form-control-sm" placeholder="Stok" required/>
                 </div>
             </div>
         </div>
@@ -517,7 +517,7 @@ function downloadCSV() {
             </div>
             <div class="form-group my-2">
                 <label for="stokItem" class="form-label fw-bold">Stok Item</label>
-                <input type="number" bind:value={stokItem} min="1" class="form-control form-control-sm" placeholder="Stok" required/>
+                <input type="number" bind:value={stokItem} min="0" class="form-control form-control-sm" placeholder="Stok" required/>
             </div>
             <div class="form-group">
                 <label for="hargaStokUpdate" class="form-label fw-bold">Harga Stok</label>
