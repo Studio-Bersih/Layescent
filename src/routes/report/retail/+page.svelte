@@ -219,7 +219,9 @@
                             <th>#</th>
                             <th>Nama</th>
                             <th>Terjual</th>
-                            <th>Sisa Stok</th>
+                            {#if $useConfiguration.usaha !== "Nick Cell" || $useConfiguration.roles === "Admin"}
+                                <th>Sisa Stok</th>
+                            {/if}
                             {#if $useConfiguration.roles === "Admin"}                            
                                 <th>Harga Beli</th>
                             {/if}
@@ -243,7 +245,9 @@
                                     <td>{index + 1}</td>
                                     <td class="text-start">{newData.NAMA}</td>
                                     <td>{newData.TERJUAL}</td>
-                                    <td>{newData.SISA_STOK}</td>
+                                    {#if $useConfiguration.usaha !== "Nick Cell" || $useConfiguration.roles === "Admin"}
+                                        <td>{newData.SISA_STOK}</td>
+                                    {/if}
                                     {#if $useConfiguration.roles === "Admin"}                                    
                                         <td>{rupiahFormatter.format(newData.HARGA_BELI)}</td>
                                     {/if}
@@ -263,18 +267,20 @@
                                     {/if}
                                 </tr>
                             {/each}
-                            <tr>
-                                <td></td>
-                                <td></td>
-                                <td></td>
-                                <td class="text-center"></td>
-                                <td class="text-center"></td>
-                                <td class="text-center"></td>
-                                <td class="text-center">{rupiahFormatter.format(totalTransaksi)}</td>
-                                <td class="text-center"></td>
-                                <td class="text-center text-success fw-bold">{rupiahFormatter.format(totalBersih)}</td>
-                                <td class="text-center"></td>
-                            </tr>
+                            {#if $useConfiguration.roles === "Admin"}                            
+                                <tr>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                    <td class="text-center"></td>
+                                    <td class="text-center"></td>
+                                    <td class="text-center"></td>
+                                    <td class="text-center">{rupiahFormatter.format(totalTransaksi)}</td>
+                                    <td class="text-center"></td>
+                                    <td class="text-center text-success fw-bold">{rupiahFormatter.format(totalBersih)}</td>
+                                    <td class="text-center"></td>
+                                </tr>
+                            {/if}
                         {/if}
                     </tbody>
                 </table>
