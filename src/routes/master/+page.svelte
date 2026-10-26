@@ -406,14 +406,18 @@ function downloadCSV() {
         <div class="px-4 px-md-6 pt-4">
             <!-- Search: unchanged behaviour, it still drives stringFilter(). -->
             <label for="setToken" class="form-label fw-bold mb-1">[ESC] Scan Barcode atau Nama Item</label>
-            <div class="position-relative master-search">
-                <img src="/icons/search.svg" class="h-20px position-absolute top-50 translate-middle-y ms-3" alt="SVG Search" />
-                <input type="text" id="setToken" bind:this={searchByNameController} bind:value={searchBar} onkeyup={ () => {stringFilter(searchBar)} } min="0" class="form-control ps-11" placeholder="Cari Item" required />
+            <!-- The button runs the same stringFilter() the keystrokes already do. -->
+            <div class="d-flex gap-2 master-search">
+                <div class="position-relative flex-grow-1">
+                    <img src="/icons/search.svg" class="h-20px position-absolute top-50 translate-middle-y ms-3" alt="SVG Search" />
+                    <input type="text" id="setToken" bind:this={searchByNameController} bind:value={searchBar} onkeyup={ () => {stringFilter(searchBar)} } min="0" class="form-control ps-11" placeholder="Cari Item" required />
+                </div>
+                <button type="button" class="btn btn-primary px-6 flex-shrink-0" onclick={() => stringFilter(searchBar)}>Cari</button>
             </div>
 
             <!-- Filter toggle: phones only. From md up the filter row is always visible. -->
             <div class="d-flex d-md-none gap-2 mt-3">
-                <button type="button" class="btn btn-sm btn-light border flex-grow-1 master-tap fw-semibold" onclick={() => showFilter = !showFilter} aria-expanded={showFilter} aria-controls="masterFilter">
+                <button type="button" class="btn btn-sm btn-light border flex-grow-1 master-tap fw-semibold btn-shadow master-filter-toggle" onclick={() => showFilter = !showFilter} aria-expanded={showFilter} aria-controls="masterFilter">
                     Filter {showFilter ? '▴' : '▾'}
                     {#if activeFilters > 0}<span class="badge badge-primary ms-1">{activeFilters}</span>{/if}
                 </button>
@@ -616,6 +620,29 @@ function downloadCSV() {
         .master-range :global(input) { width: 100%; flex: 1 1 0; min-width: 0; }
         .master-tap { min-height: 44px; }
         .master-page-btn { min-width: 44px; min-height: 40px; }
+
+        /*
+        | The filter is folded away on a phone, so its toggle is raised with a
+        | shadow to read as a control rather than a label — easy to miss otherwise.
+        | Opened, the panel sits in its own raised box.
+        */
+        /*
+        | Metronic strips box-shadow from every .btn that is not .btn-shadow (or
+        | .shadow*), hence that class on the button; !important beats its states.
+        */
+        .master-filter-toggle {
+            background-color: #fff !important;
+            color: #181c32 !important;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2) !important;
+        }
+        .master-filter-toggle:active {
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2) !important;
+        }
+        #masterFilter {
+            padding: 1rem;
+            border-radius: 0.65rem;
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.10);
+        }
     }
 </style>
 
