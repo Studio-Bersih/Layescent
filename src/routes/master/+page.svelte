@@ -47,8 +47,86 @@
 
     const jenisItem: string[] = ['Alat Listrik','Minuman','Aksesoris','Pulsa','Kuota','Voucher'];
 
-    let setDelete: number | null = $state(null); 
+    let setDelete: number | null = $state(null);
     let setUpdate: number | null = $state(null);
+
+    /*
+    | Display-only filters and pagination.
+    |
+    | Everything below narrows what is RENDERED from `newData` and nothing else.
+    | `newData`, `newDataDefault`, the search (stringFilter), the API calls and the
+    | CSV export all behave exactly as before — the CSV still exports `newData`.
+    */
+    let filterJenis: string = $state('');
+    let filterHargaField: 'hargaJual' | 'hargaStok' = $state('hargaJual');
+    let filterHargaMin: string = $state('');
+    let filterHargaMax: string = $state('');
+    let showFilter: boolean = $state(false);
+
+    let page: number = $state(1);
+    let perPage: number = $state(25);
+
+    // The fixed list, plus any jenis already stored that is not in it.
+    let jenisOptions: string[] = $derived([
+        ...jenisItem,
+        ...[...new Set(newDataDefault.map((item) => item.jenis))]
+            .filter((value) => value && !jenisItem.includes(value))
+            .sort()
+    ]);
+
+    // Rupiah inputs hold "Rp 10.000"; an input with no digits means "no bound".
+    const hargaBound = (value: string): number | null => /\d/.test(value) ? currencySanitizer(value) : null;
+
+    let hargaMin: number | null = $derived(hargaBound(filterHargaMin));
+    let hargaMax: number | null = $derived(hargaBound(filterHargaMax));
+
+    let activeFilters: number = $derived(
+        (filterJenis !== '' ? 1 : 0) + (hargaMin !== null || hargaMax !== null ? 1 : 0)
+    );
+
+    let filteredData: Master[] = $derived.by(() => {
+        // Tolerate the bounds typed the wrong way round.
+        const low  = hargaMin !== null && hargaMax !== null ? Math.min(hargaMin, hargaMax) : hargaMin;
+        const high = hargaMin !== null && hargaMax !== null ? Math.max(hargaMin, hargaMax) : hargaMax;
+
+        return newData.filter((item) => {
+            if (filterJenis !== '' && item.jenis !== filterJenis) return false;
+            const harga = Number(item[filterHargaField] ?? 0);
+            if (low !== null && harga < low) return false;
+            if (high !== null && harga > high) return false;
+            return true;
+        });
+    });
+
+    let lastPage: number = $derived(Math.max(1, Math.ceil(filteredData.length / perPage)));
+    let pageOffset: number = $derived((page - 1) * perPage);
+    let pagedData: Master[] = $derived(filteredData.slice(pageOffset, pageOffset + perPage));
+
+    // Back to page 1 whenever what is being looked at changes.
+    $effect(() => {
+        filterJenis; filterHargaField; hargaMin; hargaMax; searchBar; perPage;
+        page = 1;
+    });
+
+    // Keep the page in range after a delete shrinks the list.
+    $effect(() => {
+        if (page > lastPage) page = lastPage;
+    });
+
+    function resetFilter(): void {
+        filterJenis = '';
+        filterHargaField = 'hargaJual';
+        filterHargaMin = '';
+        filterHargaMax = '';
+        if (searchBar !== '') {
+            searchBar = '';
+            stringFilter(searchBar);
+        }
+    }
+
+    function gotoPage(target: number): void {
+        page = Math.min(Math.max(1, target), lastPage);
+    }
 
     onMount(() => initializePage());
 
@@ -307,96 +385,239 @@ function downloadCSV() {
 
 </script>
 <Navigation/>
-<div class="container-fluid">
-    <div class="card card-dashed shadow mt-3">
-        <div class="card-header">
-            <div class="card-toolbar">
-                <button type="button" onclick={viewForm} class="btn btn-sm btn-success me-1 mb-1">
+<div class="container-fluid px-3 px-md-5 master-page">
+    <div class="card card-dashed shadow-sm mt-3 mb-5">
+
+        <!-- Title + the two page actions. Buttons go full-width side by side on a phone. -->
+        <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 px-4 px-md-6 pt-5 pb-4 border-bottom">
+            <h1 class="fs-2 fw-bolder mb-0">Master Item</h1>
+            <div class="d-flex gap-2 master-actions">
+                <button type="button" onclick={viewForm} class="btn btn-sm btn-success d-inline-flex align-items-center justify-content-center">
                     <img src="/icons/pen.svg" class="h-20px me-2" alt="SVG Input Item" /> Buat Item Baru
                 </button>
-                <button type="button" onclick={downloadCSV} class="btn btn-sm btn-info me-1 mb-1">
-                    <img src="/icons/Item.svg" class="h-20px me-2" alt="SVG Input Item" /> Unduh Laporan Stok Item
+                <button type="button" onclick={downloadCSV} class="btn btn-sm btn-info d-inline-flex align-items-center justify-content-center">
+                    <img src="/icons/Item.svg" class="h-20px me-2" alt="SVG Input Item" />
+                    <span class="d-none d-md-inline">Unduh Laporan Stok Item</span>
+                    <span class="d-md-none">Unduh Stok</span>
                 </button>
             </div>
         </div>
-        <div class="card-body">
 
-            <div class="row">
-                <div class="col-1 text-center">
-                    <img src="/icons/search.svg" class="h-40px" alt="SVG Search" />
-                </div>
-                <div class="col">
-                    <label for="setToken" class="form-label fw-bold ms-1">[ESC] Scan Barcode atau Nama Item</label>
-                    <input type="text" id="setToken" bind:this={searchByNameController} bind:value={searchBar} onkeyup={ () => {stringFilter(searchBar)} } min="0" class="form-control form-control-sm w-25" placeholder="Cari Item" required />
-                </div>
+        <div class="px-4 px-md-6 pt-4">
+            <!-- Search: unchanged behaviour, it still drives stringFilter(). -->
+            <label for="setToken" class="form-label fw-bold mb-1">[ESC] Scan Barcode atau Nama Item</label>
+            <div class="position-relative master-search">
+                <img src="/icons/search.svg" class="h-20px position-absolute top-50 translate-middle-y ms-3" alt="SVG Search" />
+                <input type="text" id="setToken" bind:this={searchByNameController} bind:value={searchBar} onkeyup={ () => {stringFilter(searchBar)} } min="0" class="form-control ps-11" placeholder="Cari Item" required />
             </div>
 
-            <div class="separator my-10"></div>
+            <!-- Filter toggle: phones only. From md up the filter row is always visible. -->
+            <div class="d-flex d-md-none gap-2 mt-3">
+                <button type="button" class="btn btn-sm btn-light border flex-grow-1 master-tap fw-semibold" onclick={() => showFilter = !showFilter} aria-expanded={showFilter} aria-controls="masterFilter">
+                    Filter {showFilter ? '▴' : '▾'}
+                    {#if activeFilters > 0}<span class="badge badge-primary ms-1">{activeFilters}</span>{/if}
+                </button>
+                <button type="button" class="btn btn-sm btn-light master-tap" onclick={resetFilter}>↺ Reset</button>
+            </div>
 
-            <h1 class="mb-7">Daftar Item</h1>
+            <div id="masterFilter" class="d-md-flex flex-wrap align-items-end gap-3 mt-3" class:d-none={!showFilter}>
+                <div class="master-field-jenis">
+                    <label for="filterJenis" class="form-label fw-bold mb-1">Jenis</label>
+                    <select id="filterJenis" bind:value={filterJenis} class="form-select form-select-sm">
+                        <option value="">Semua Jenis</option>
+                        {#each jenisOptions as option}
+                            <option value={option}>{option}</option>
+                        {/each}
+                    </select>
+                </div>
 
-            <div class="table-responsive">
-                <table class="table align-middle table-hover gx-1 gy-1">
-                    <thead>
-                        <tr class="fw-bolder">
-                            <th>#</th>
-                            <th>Nama</th>
-                            <th>Jenis</th>
-                            <th>Barcode</th>
-                            <th class="text-center">Harga Stok</th>
-                            <th class="text-center">Harga Jual</th>
-                            <th>Keterangan</th>
-                            <th class="text-center">Cabang 1</th>
-                            <th class="text-center">Cabang 2</th>
-                            <th class="text-center">Cabang 3</th>
-                            <th></th>
+                <div class="mt-3 mt-md-0">
+                    <span class="form-label fw-bold mb-1 d-block">Rentang Harga</span>
+                    <div class="d-flex flex-wrap align-items-center gap-2">
+                        <div class="btn-group btn-group-sm" role="group" aria-label="Harga yang difilter">
+                            <button type="button" class="btn" class:btn-primary={filterHargaField === 'hargaJual'} class:btn-light={filterHargaField !== 'hargaJual'}
+                                    aria-pressed={filterHargaField === 'hargaJual'} onclick={() => filterHargaField = 'hargaJual'}>Jual</button>
+                            <button type="button" class="btn" class:btn-primary={filterHargaField === 'hargaStok'} class:btn-light={filterHargaField !== 'hargaStok'}
+                                    aria-pressed={filterHargaField === 'hargaStok'} onclick={() => filterHargaField = 'hargaStok'}>Stok</button>
+                        </div>
+                        <div class="d-flex align-items-center gap-2 master-range">
+                            <Rupiah id="filterHargaMin" useClass="form-control form-control-sm" bind:value={filterHargaMin} placeholder="Min Rp" />
+                            <span class="text-muted">–</span>
+                            <Rupiah id="filterHargaMax" useClass="form-control form-control-sm" bind:value={filterHargaMax} placeholder="Maks Rp" />
+                        </div>
+                    </div>
+                </div>
+
+                <button type="button" class="btn btn-sm btn-light d-none d-md-inline-block" onclick={resetFilter}>↺ Reset Filter</button>
+            </div>
+
+            <p class="text-muted fs-7 mt-4 mb-3">
+                {#if filteredData.length === 0}
+                    Tidak ada item
+                {:else}
+                    Menampilkan {pageOffset + 1}–{pageOffset + pagedData.length} dari {filteredData.length} item
+                {/if}
+                {#if filteredData.length !== newDataDefault.length}
+                    <span>(total {newDataDefault.length} item)</span>
+                {/if}
+            </p>
+        </div>
+
+        <!-- md and up: table. Fixed column widths so the stock inputs and actions never get squeezed. -->
+        <div class="table-responsive d-none d-md-block px-md-4">
+            <table class="table align-middle table-hover table-row-dashed gx-3 gy-2 mb-0 master-table">
+                <thead>
+                    <tr class="fw-bolder text-muted fs-7 text-uppercase">
+                        <th class="col-no">#</th>
+                        <th class="col-nama">Nama</th>
+                        <th>Jenis</th>
+                        <th>Barcode</th>
+                        <th class="text-end">Harga Stok</th>
+                        <th class="text-end">Harga Jual</th>
+                        <th class="col-ket">Keterangan</th>
+                        <th class="text-center col-stok">Cabang 1</th>
+                        <th class="text-center col-stok">Cabang 2</th>
+                        <th class="text-center col-stok">Cabang 3</th>
+                        <th class="text-end col-aksi">Aksi</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {#if pagedData.length === 0}
+                        <tr>
+                            <td colspan="11" class="text-center text-muted py-10">Tidak ada data</td>
                         </tr>
-                    </thead>
-                    <tbody>
-                        {#if newData.length === 0}
+                    {:else}
+                        {#each pagedData as item, index (item)}
                             <tr>
-                                <td colspan="10" class="text-center">Tidak ada data</td>
+                                <td class="text-muted">{pageOffset + index + 1}</td>
+                                <td class="fw-semibold">{item.name}</td>
+                                <td><span class="badge badge-light">{item.jenis}</span></td>
+                                <td class="text-nowrap font-monospace fs-7">{item.barcode}</td>
+                                <td class="text-end text-nowrap">{rupiahFormatter.format(item.hargaStok)}</td>
+                                <td class="text-end text-nowrap fw-semibold">{rupiahFormatter.format(item.hargaJual)}</td>
+                                <td class="col-ket text-truncate" title={item.keterangan ?? ''}>{item.keterangan ?? '-'}</td>
+                                <td><input type="number" bind:value={item.stokItem} class="form-control form-control-sm text-center" aria-label="Stok cabang 1 {item.name}"/></td>
+                                <td><input type="number" bind:value={item.stokItemSecond} class="form-control form-control-sm text-center" aria-label="Stok cabang 2 {item.name}"/></td>
+                                <td><input type="number" bind:value={item.stokItemThird} class="form-control form-control-sm text-center" aria-label="Stok cabang 3 {item.name}"/></td>
+                                <td class="text-end text-nowrap">
+                                    <button type="button" onclick={() => updateStock(item.id, item.stokItem, item.stokItemSecond, item.stokItemThird)} class="btn btn-sm btn-icon btn-primary" title="Simpan stok">
+                                        <img src="/icons/sync.svg" class="h-20px" alt="SVG Synchronize" />
+                                    </button>
+                                    <button type="button" onclick={() => viewModal(item.id, "update")} class="btn btn-sm btn-icon btn-warning" title="Ubah item">
+                                        <img src="/icons/pen.svg" class="h-20px" alt="SVG Synchronize" />
+                                    </button>
+                                    <button type="button" onclick={() => viewModal(item.id, 'delete')} class="btn btn-sm btn-icon btn-danger" title="Hapus item">
+                                        <img src="/icons/trash.svg" class="h-20px" alt="SVG Trash" />
+                                    </button>
+                                </td>
                             </tr>
-                        {:else}
-                            {#each newData as newData, index }
-                                <tr>
-                                    <td>{index + 1}</td>
-                                    <td>{newData.name}</td>
-                                    <td>{newData.jenis}</td>
-                                    <td>{newData.barcode}</td>
-                                    <td class="text-center">{rupiahFormatter.format(newData.hargaStok)}</td>
-                                    <td class="text-center">{rupiahFormatter.format(newData.hargaJual)}</td>
-                                    <td>{newData.keterangan ?? '-'}</td>
-                                    <td width="10%" class="text-center">
-                                        <input type="number" bind:value={newData.stokItem} class="form-control form-control-sm text-center"/>
-                                    </td>
-                                    <td width="10%" class="text-center">
-                                        <input type="number" bind:value={newData.stokItemSecond} class="form-control form-control-sm text-center"/>
-                                    </td>
-                                    <td width="10%" class="text-center">
-                                        <input type="number" bind:value={newData.stokItemThird} class="form-control form-control-sm text-center"/>
-                                    </td>
-                                    <td>
-                                        <button type="button" onclick={() => updateStock(newData.id, newData.stokItem, newData.stokItemSecond, newData.stokItemThird)} class="btn btn-sm btn-icon btn-primary mb-1">
-                                            <img src="/icons/sync.svg" class="h-25px" alt="SVG Synchronize" />
-                                        </button>
-                                        <button type="button" onclick={() => viewModal(newData.id, "update")} class="btn btn-sm btn-icon btn-warning mb-1">
-                                            <img src="/icons/pen.svg" class="h-25px" alt="SVG Synchronize" />
-                                        </button>
-                                        <button type="button" onclick={() => viewModal(newData.id, 'delete')} class="btn btn-sm btn-icon btn-danger mb-1">
-                                            <img src="/icons/trash.svg" class="h-25px" alt="SVG Trash" />
-                                        </button>
-                                    </td>
-                                </tr>
-                            {/each}
-                        {/if}
-                    </tbody>
-                </table>
-            </div>
+                        {/each}
+                    {/if}
+                </tbody>
+            </table>
+        </div>
 
+        <!-- Phones: one card per item, large tap targets. Same bindings and handlers as the table. -->
+        <div class="d-md-none px-4">
+            {#if pagedData.length === 0}
+                <p class="text-center text-muted py-10 mb-0">Tidak ada data</p>
+            {:else}
+                {#each pagedData as item, index (item)}
+                    <div class="border rounded p-4 mb-3">
+                        <div class="d-flex justify-content-between align-items-start gap-2">
+                            <div class="min-w-0">
+                                <div class="fw-bolder fs-6">{pageOffset + index + 1}. {item.name}</div>
+                                <div class="text-muted font-monospace fs-7 text-break">{item.barcode}</div>
+                            </div>
+                            <span class="badge badge-light flex-shrink-0">{item.jenis}</span>
+                        </div>
+
+                        <div class="d-flex gap-4 mt-3 fs-7">
+                            <div><span class="text-muted d-block">Harga Stok</span>{rupiahFormatter.format(item.hargaStok)}</div>
+                            <div><span class="text-muted d-block">Harga Jual</span><span class="fw-bold">{rupiahFormatter.format(item.hargaJual)}</span></div>
+                        </div>
+
+                        {#if item.keterangan}
+                            <div class="text-muted fs-7 mt-2">{item.keterangan}</div>
+                        {/if}
+
+                        <div class="row g-2 mt-2">
+                            <div class="col-4">
+                                <label class="form-label fs-8 text-muted mb-1" for="stok1-{item.id}-{index}">Cabang 1</label>
+                                <input id="stok1-{item.id}-{index}" type="number" inputmode="numeric" bind:value={item.stokItem} class="form-control text-center master-tap"/>
+                            </div>
+                            <div class="col-4">
+                                <label class="form-label fs-8 text-muted mb-1" for="stok2-{item.id}-{index}">Cabang 2</label>
+                                <input id="stok2-{item.id}-{index}" type="number" inputmode="numeric" bind:value={item.stokItemSecond} class="form-control text-center master-tap"/>
+                            </div>
+                            <div class="col-4">
+                                <label class="form-label fs-8 text-muted mb-1" for="stok3-{item.id}-{index}">Cabang 3</label>
+                                <input id="stok3-{item.id}-{index}" type="number" inputmode="numeric" bind:value={item.stokItemThird} class="form-control text-center master-tap"/>
+                            </div>
+                        </div>
+
+                        <div class="d-flex gap-2 mt-3">
+                            <button type="button" onclick={() => updateStock(item.id, item.stokItem, item.stokItemSecond, item.stokItemThird)} class="btn btn-sm btn-primary flex-grow-1 d-inline-flex align-items-center justify-content-center master-tap">
+                                <img src="/icons/sync.svg" class="h-20px me-2" alt="SVG Synchronize" /> Simpan Stok
+                            </button>
+                            <button type="button" onclick={() => viewModal(item.id, "update")} class="btn btn-sm btn-warning master-tap" aria-label="Ubah {item.name}">
+                                <img src="/icons/pen.svg" class="h-20px" alt="SVG Synchronize" />
+                            </button>
+                            <button type="button" onclick={() => viewModal(item.id, 'delete')} class="btn btn-sm btn-danger master-tap" aria-label="Hapus {item.name}">
+                                <img src="/icons/trash.svg" class="h-20px" alt="SVG Trash" />
+                            </button>
+                        </div>
+                    </div>
+                {/each}
+            {/if}
+        </div>
+
+        <!-- Pagination -->
+        <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 px-4 px-md-6 py-4 border-top">
+            <select bind:value={perPage} class="form-select form-select-sm w-auto" aria-label="Item per halaman">
+                <option value={25}>25 / halaman</option>
+                <option value={50}>50 / halaman</option>
+                <option value={100}>100 / halaman</option>
+            </select>
+            <div class="d-flex align-items-center gap-1">
+                <button type="button" class="btn btn-sm btn-light master-page-btn" disabled={page <= 1} onclick={() => gotoPage(1)} aria-label="Halaman pertama">«</button>
+                <button type="button" class="btn btn-sm btn-light master-page-btn" disabled={page <= 1} onclick={() => gotoPage(page - 1)} aria-label="Halaman sebelumnya">‹</button>
+                <span class="px-3 fs-7 text-nowrap">{page} / {lastPage}</span>
+                <button type="button" class="btn btn-sm btn-light master-page-btn" disabled={page >= lastPage} onclick={() => gotoPage(page + 1)} aria-label="Halaman berikutnya">›</button>
+                <button type="button" class="btn btn-sm btn-light master-page-btn" disabled={page >= lastPage} onclick={() => gotoPage(lastPage)} aria-label="Halaman terakhir">»</button>
+            </div>
         </div>
     </div>
 </div>
+
+<style>
+    /* Sizing. Inputs are as wide as what they hold, never the old fixed w-25. */
+    .master-search { max-width: 520px; }
+    .master-field-jenis { min-width: 200px; }
+    .master-range :global(input) { width: 150px; }
+
+    .master-table { min-width: 1100px; }
+    .master-table .col-no   { width: 48px; }
+    .master-table .col-nama { min-width: 200px; }
+    .master-table .col-ket  { max-width: 200px; }
+    .master-table .col-stok { width: 88px; }
+    .master-table .col-aksi { width: 140px; }
+    .master-table td input  { min-width: 72px; }
+
+    .master-page-btn { min-width: 36px; }
+
+    /* Phones: full-width controls and ~44px touch targets. */
+    @media (max-width: 767.98px) {
+        .master-actions { width: 100%; }
+        .master-actions > * { flex: 1 1 0; font-size: 0.85rem; }
+        .master-search { max-width: none; }
+        .master-field-jenis { min-width: 0; }
+        .master-range { flex: 1 1 100%; }
+        .master-range :global(input) { width: 100%; flex: 1 1 0; min-width: 0; }
+        .master-tap { min-height: 44px; }
+        .master-page-btn { min-width: 44px; min-height: 40px; }
+    }
+</style>
 
  <Modal bind:isModal={isModal} size={"md"} title="" onClose={() => isModal = !isModal}>
     {#snippet modalContent()}
